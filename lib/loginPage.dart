@@ -59,13 +59,13 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(
                       height: 10,
                     ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      width: MediaQuery.of(context).size.height * 0.3,
-                      // child:
-                      //  Image.asset(
-                      //     fit: BoxFit.cover, "assets/images/logonew.png"),
-                    ),
+                    // SizedBox(
+                    //   height: MediaQuery.of(context).size.height * 0.1,
+                    //   width: MediaQuery.of(context).size.height * 0.3,
+                    //   // child:
+                    //   //  Image.asset(
+                    //   //     fit: BoxFit.cover, "assets/images/logonew.png"),
+                    // ),
                     const Text(
                       'Sign in to your account',
                       style:

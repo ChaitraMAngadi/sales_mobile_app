@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:sales_mobile_app/routes/app_router.dart';
 import 'package:sales_mobile_app/services/constants.dart';
 import 'package:sales_mobile_app/services/secureStorage.dart';
 
@@ -31,13 +32,13 @@ class _SplashPageState extends State<SplashPage> {
     // } 
     // else 
     if (Constants.token.isNotEmpty) {
-      // context.router.replaceAll([const AdminDashboardRoute()]);
+      context.router.replaceAll([const DashboardRoute()]);
     } 
     // else if (Constants.nursetoken.isNotEmpty) {
     //   context.router.replaceAll([const StaffDashboardRoute()]);
     // } 
     else {
-      // context.router.replaceAll([const LoginRoute()]);
+      context.router.replaceAll([const LoginRoute()]);
     }
   }
 
