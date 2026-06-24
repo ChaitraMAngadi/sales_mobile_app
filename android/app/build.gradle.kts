@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.sales_mobile_app"
+    namespace = "com.ppldoc.sales_mobile_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
