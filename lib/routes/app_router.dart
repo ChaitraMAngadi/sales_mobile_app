@@ -3,6 +3,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:sales_mobile_app/authenticationScreen.dart';
 import 'package:sales_mobile_app/dashBoard.dart';
 import 'package:sales_mobile_app/loginPage.dart';
+import 'package:sales_mobile_app/pages/doctors/registerNewDoctor.dart';
+import 'package:sales_mobile_app/pages/hospitals/editHospitalPage.dart';
+import 'package:sales_mobile_app/pages/hospitals/registerNewHospital.dart';
 import 'package:sales_mobile_app/splashPage.dart';
 
 part 'app_router.gr.dart';
@@ -24,6 +27,15 @@ class AppRouter extends _$AppRouter {
         AutoRoute(
           page: DashboardRoute.page,
          
+        ),
+        AutoRoute(
+          page: RegisterNewHospitalRoute.page,
+        ),
+        AutoRoute(
+          page: EditHospitalRoute.page,
+        ),
+        AutoRoute(
+          page: RegisterNewDoctorRoute.page,
         ),
         
       ];

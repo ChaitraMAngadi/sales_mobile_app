@@ -32,10 +32,37 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const DashboardPage(),
       );
     },
+    EditHospitalRoute.name: (routeData) {
+      final args = routeData.argsAs<EditHospitalRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: EditHospitalPage(
+          key: args.key,
+          hospitalId: args.hospitalId,
+          name: args.name,
+          userid: args.userid,
+          email: args.email,
+          phone: args.phone,
+          address: args.address,
+        ),
+      );
+    },
     LoginRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
         child: const LoginPage(),
+      );
+    },
+    RegisterNewDoctorRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const RegisterNewDoctorPage(),
+      );
+    },
+    RegisterNewHospitalRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const RegisterNewHospitalPage(),
       );
     },
     SplashRoute.name: (routeData) {
@@ -105,6 +132,69 @@ class DashboardRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [EditHospitalPage]
+class EditHospitalRoute extends PageRouteInfo<EditHospitalRouteArgs> {
+  EditHospitalRoute({
+    Key? key,
+    required String hospitalId,
+    required String name,
+    required String userid,
+    required String email,
+    required String phone,
+    required String address,
+    List<PageRouteInfo>? children,
+  }) : super(
+          EditHospitalRoute.name,
+          args: EditHospitalRouteArgs(
+            key: key,
+            hospitalId: hospitalId,
+            name: name,
+            userid: userid,
+            email: email,
+            phone: phone,
+            address: address,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'EditHospitalRoute';
+
+  static const PageInfo<EditHospitalRouteArgs> page =
+      PageInfo<EditHospitalRouteArgs>(name);
+}
+
+class EditHospitalRouteArgs {
+  const EditHospitalRouteArgs({
+    this.key,
+    required this.hospitalId,
+    required this.name,
+    required this.userid,
+    required this.email,
+    required this.phone,
+    required this.address,
+  });
+
+  final Key? key;
+
+  final String hospitalId;
+
+  final String name;
+
+  final String userid;
+
+  final String email;
+
+  final String phone;
+
+  final String address;
+
+  @override
+  String toString() {
+    return 'EditHospitalRouteArgs{key: $key, hospitalId: $hospitalId, name: $name, userid: $userid, email: $email, phone: $phone, address: $address}';
+  }
+}
+
+/// generated route for
 /// [LoginPage]
 class LoginRoute extends PageRouteInfo<void> {
   const LoginRoute({List<PageRouteInfo>? children})
@@ -114,6 +204,34 @@ class LoginRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'LoginRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [RegisterNewDoctorPage]
+class RegisterNewDoctorRoute extends PageRouteInfo<void> {
+  const RegisterNewDoctorRoute({List<PageRouteInfo>? children})
+      : super(
+          RegisterNewDoctorRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'RegisterNewDoctorRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [RegisterNewHospitalPage]
+class RegisterNewHospitalRoute extends PageRouteInfo<void> {
+  const RegisterNewHospitalRoute({List<PageRouteInfo>? children})
+      : super(
+          RegisterNewHospitalRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'RegisterNewHospitalRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }

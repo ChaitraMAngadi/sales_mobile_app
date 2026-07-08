@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_mobile_app/appEnabletoggle.dart';
 import 'package:sales_mobile_app/loginPage.dart';
+import 'package:sales_mobile_app/pages/admins/adminsPage.dart';
+import 'package:sales_mobile_app/pages/doctors/doctorsPage.dart';
+import 'package:sales_mobile_app/pages/hospitals/hospitalPage.dart';
+import 'package:sales_mobile_app/pages/profilesPage.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
 import 'package:sales_mobile_app/services/constants.dart';
 import 'package:sales_mobile_app/services/secureStorage.dart';
@@ -24,14 +28,14 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 final SecureStorage secureStorage = SecureStorage();
-  late Future fetchadmin;
+  // late Future fetchadmin;
   bool isLoading = true;
 
   final List<Widget> _pages = const [
-    // AllPatientsPage(),
-    //  DoctorDetailsPage(),
-    //  TodaysOutvisitsPage(),
-    //  AdminProfilePage(),
+   HospitalPage(),
+   DoctorsPage(),
+   AdminsPage(),
+   ProfileScreen()
   ];
 
   @override
@@ -85,7 +89,7 @@ Widget build(BuildContext context) {
           iconTheme:  IconThemeData(color: AppColors.primary),
           centerTitle: true,
           title: const Text(
-            "Admin Dashboard",
+            "Sales Dashboard",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: AppColors.primary,
@@ -198,21 +202,21 @@ Widget build(BuildContext context) {
           type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.group),
-              label: 'Patients',
+              icon: Icon(Icons.local_hospital),
+              label: 'Hospitals',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_pin_rounded),
+              icon: Icon(Icons.group),
               label: 'Doctors',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_pin_rounded),
-              label: "Today's Visits",
+              label: "Admins",
             ),
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.person),
-            //   label: 'Profile',
-            // ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profiles',
+            ),
           ],
           backgroundColor:  Colors.white,
           currentIndex: _selectedIndex,
@@ -233,15 +237,16 @@ Widget _buildBody(Salesprovider adminPageProvider) {
   if (Constants.token.isEmpty) {
     return const LoginPage();
   }
-  return FutureBuilder(
-    future: fetchadmin,
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      return _pages[_selectedIndex];
-    },
-  );
+  return _pages[_selectedIndex];
+  // FutureBuilder(
+  //   future: fetchadmin,
+  //   builder: (context, snapshot) {
+  //     if (snapshot.connectionState == ConnectionState.waiting) {
+  //       return const Center(child: CircularProgressIndicator());
+  //     }
+  //     return _pages[_selectedIndex];
+  //   },
+  // );
 }
 
 

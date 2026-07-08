@@ -1,8 +1,8 @@
 class Constants {
-  // static const String baseUrl = "http://192.168.0.237:5000";
+  static const String baseUrl = "http://192.168.0.237:5000";
   // static const String baseUrl = "https://jellyfish-app-knz87.ondigitalocean.app"; // main one from digiatal ocean
 
-      static const String baseUrl = "https://api1.ppldoc.com"; // our main server
+      // static const String baseUrl = "https://api1.ppldoc.com"; // our main server
 
       // static const String baseUrl = "https://ppldoc-backend-v1.vercel.app"; // versel 
 

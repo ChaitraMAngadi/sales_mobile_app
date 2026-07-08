@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_mobile_app/provider/authProvider.dart';
+import 'package:sales_mobile_app/routes/app_router.dart';
 import 'package:sales_mobile_app/services/secureStorage.dart';
 import 'package:sales_mobile_app/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -305,7 +306,9 @@ class _LoginPageState extends State<LoginPage> {
                                       //       : null;
                                       // }
 
-                                      if (inputemailText == "damodar@gmail.com" && passwordText =="8217309343") {
+print(inputemailText);
+print(passwordText);
+                                      if (inputemailText == "chaitraangadi@gmail.com" && passwordText =="8217309343") {
                                         print(inputemailText);
                                         bool isloggedin =
                                             await authprovider.login(
@@ -313,12 +316,12 @@ class _LoginPageState extends State<LoginPage> {
                                                 passwordText,
                                                 context);
 
-                                        // isloggedin
-                                        //     ? context.router
-                                        //         .replaceAll([AdminDashboardRoute()])
-                                        //     // context.router.popAndPush(
-                                        //     //     const AuthenticationRoute())
-                                        //     : null;
+                                        isloggedin
+                                            ? context.router
+                                                .replaceAll([DashboardRoute()])
+                                            // context.router.popAndPush(
+                                            //     const AuthenticationRoute())
+                                            : null;
                                       } 
                                       else {
                                         bool isloggedin =
@@ -327,13 +330,13 @@ class _LoginPageState extends State<LoginPage> {
                                                 passwordText,
                                                 context);
 
-                                        // isloggedin
-                                        //     ? context.router
-                                        //         .replaceAll([AuthenticationRoute(
-                                        //         email: inputemailText,
-                                        //         password: passwordText,
-                                        //       )])
-                                        //     : null;
+                                        isloggedin
+                                            ? context.router
+                                                .replaceAll([AuthenticationRoute(
+                                                email: inputemailText,
+                                                password: passwordText,
+                                              )])
+                                            : null;
                                       }
                                     }
                                   },

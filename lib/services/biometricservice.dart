@@ -1,41 +1,35 @@
+import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
 class BiometricService {
   final LocalAuthentication _auth = LocalAuthentication();
 
-  /// Check device supports ANY lock (biometric OR PIN)
   Future<bool> isDeviceLockAvailable() async {
     try {
-      return await _auth.isDeviceSupported();
+      final canCheck = await _auth.canCheckBiometrics;
+      final isSupported = await _auth.isDeviceSupported();
+      return canCheck || isSupported;
     } catch (_) {
       return false;
     }
   }
 
-  // /// Show SYSTEM LOCK (fingerprint / pin / pattern)
-  // Future<bool> authenticateWithDeviceLock() async {
-  //   try {
-  //     return await _auth.authenticate(
-  //       localizedReason: 'Unlock app to continue',
-  //       biometricOnly: false, // 🔥 THIS IS THE MAGIC
-  //       // stickyAuth: true,
-  //     );
-  //   } catch (e) {
-  //     return false;
-  //   }
-  // }
-
   Future<bool?> authenticateWithDeviceLock() async {
-  try {
-    final result = await _auth.authenticate(
-      localizedReason: 'Unlock app to continue',
-      biometricOnly: false,
-      // stickyAuth: false,
-      // useErrorDialogs: true,
-    );
-    return result;
-  } catch (e) {
-    return null; // 👈 VERY IMPORTANT
+    try {
+      final available = await _auth.getAvailableBiometrics();
+      print("Available biometrics: $available");
+
+      // ✅ local_auth v3 — authenticate() takes only localizedReason
+      final result = await _auth.authenticate(
+        localizedReason: 'Unlock app to continue',
+      );
+      return result;
+    } on PlatformException catch (e) {
+      print("BiometricService error: ${e.code} - ${e.message}");
+      return null;
+    } catch (e) {
+      print("BiometricService unknown error: $e");
+      return null;
+    }
   }
-}
 }

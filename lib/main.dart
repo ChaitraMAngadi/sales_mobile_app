@@ -25,9 +25,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.cardBg,
+        useMaterial3: false,
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: Colors.white,
+        fontFamily: 'Roboto',
+        drawerTheme:  DrawerThemeData(
+      backgroundColor: Colors.white,
+    ),
       ), 
-      title: 'Admin Management',
+      title: 'Sales Management',
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter.config(),
     builder: (context, child) {

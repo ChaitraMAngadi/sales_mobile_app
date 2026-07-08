@@ -24,13 +24,7 @@ class _SplashPageState extends State<SplashPage> {
     final SecureStorage secureStorage = SecureStorage();
     // Constants.role = await secureStorage.readSecureData('role') ?? '';
     Constants.token = await secureStorage.readSecureData('token') ?? '';
-    // Constants.nursetoken = await secureStorage.readSecureData('nursetoken') ?? '';
-
-    // Decide the next route
-    // if (Constants.role == 'doctor' && Constants.token.isNotEmpty) {
-    //   context.router.replaceAll([const HomeRoute()]);
-    // } 
-    // else 
+    print("token:${Constants.token }");
     if (Constants.token.isNotEmpty) {
       context.router.replaceAll([const DashboardRoute()]);
     } 

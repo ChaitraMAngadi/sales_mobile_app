@@ -1,6 +1,6 @@
-
-import 'package:sales_mobile_app/main.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:sales_mobile_app/main.dart';
 import 'package:sales_mobile_app/routes/app_router.dart';
 import 'package:sales_mobile_app/services/biometricservice.dart';
 import 'package:sales_mobile_app/services/constants.dart';
@@ -57,11 +57,22 @@ class _AppLockWrapperState extends State<AppLockWrapper> {
 //   final success =
 //       await biometricService.authenticateWithDeviceLock();
 
+//       _isAuthenticating = false;
+
+// if (!success) {
+//   setState(() {
+//     _locked = false;
+//     _showUnlockScreen = true; // 👈 show manual unlock UI
+//   });
+//   return;
+// }
+
 //   if (!mounted) return;
 
 //   _isAuthenticating = false;
 //   setState(() => _locked = !success);
 // }
+
 
 Future<void> _checkAndLock() async {
   if (_isAuthenticating) return;
@@ -109,22 +120,42 @@ Future<void> _checkAndLock() async {
 }
 
 
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        widget.child,
-        // if (_locked)
-        //   Positioned.fill(
-        //     child: Container(
-        //       color: Colors.black.withOpacity(0.85),
-        //       child: const Center(
-        //         child: CircularProgressIndicator(color: Colors.white),
-        //       ),
-        //     ),
-        //   ),
 
-        if (_locked && _isAuthenticating)
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Stack(
+  //     children: [
+  //       widget.child,
+  //       if (_locked)
+  //         Positioned.fill(
+  //           child: Container(
+  //             color: Colors.black.withOpacity(0.85),
+  //             child: const Center(
+  //               child: CircularProgressIndicator(color: Colors.white),
+  //             ),
+  //           ),
+  //         ),
+  //     ],
+  //   );
+  // }
+
+  @override
+Widget build(BuildContext context) {
+  return Stack(
+    children: [
+      widget.child,
+
+      // if (_locked)
+      //   Positioned.fill(
+      //     child: Container(
+      //       color: Colors.black.withOpacity(0.85),
+      //       child: const Center(
+      //         child: CircularProgressIndicator(color: Colors.white),
+      //       ),
+      //     ),
+      //   ),
+
+      if (_locked && _isAuthenticating)
   Positioned.fill(
     child: Container(
       color: Colors.black.withOpacity(0.85),
@@ -134,11 +165,12 @@ Future<void> _checkAndLock() async {
     ),
   ),
 
-  if (_showUnlockScreen) _unlockScreen(context),
 
-      ],
-    );
-  }
+      if (_showUnlockScreen) _unlockScreen(context),
+    ],
+  );
+}
+
 
   Widget _unlockScreen(BuildContext context) {
   return Positioned.fill(
@@ -221,6 +253,7 @@ Future<void> _checkAndLock() async {
   await secureStorage.deleteSecureData("isLoggedIn");
   await secureStorage.deleteSecureData("appLockEnabled");
   await secureStorage.deleteSecureData("biometricEnabled");
+  await secureStorage.deleteSecureData("phone");
 
   Constants.token = '';
 
@@ -272,4 +305,7 @@ Future<void> _checkAndLock() async {
     ),
   );
 }
+
 }
+
+

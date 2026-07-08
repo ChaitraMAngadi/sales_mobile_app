@@ -15,7 +15,7 @@ class Authprovider extends ChangeNotifier {
   Future<bool> login(
       String email, String password, BuildContext context) async {
 
-    String url = "${Constants.baseUrl}/api/v1/admin/loginphone";
+    String url = "${Constants.baseUrl}/api/v1/sales/directlogin";
     final headers = await DeviceHeaders.getDeviceHeaders();
 
     print(url);
@@ -105,7 +105,7 @@ print(Constants.biometricEnabled);
 
   Future<bool> sendOTP(
       String email, String password, BuildContext context) async {
-    String url = "${Constants.baseUrl}/api/v1/admin/loginotpphone";
+    String url = "${Constants.baseUrl}/api/v1/admin/loginphone";
     final headers = await DeviceHeaders.getDeviceHeaders();
 
     print(url);
