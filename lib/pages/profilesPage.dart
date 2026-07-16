@@ -39,6 +39,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
 Widget build(BuildContext context) {
   return Scaffold(
+    appBar: AppBar(
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+        ),
+      ),
+      title: Text("Profile Page",
+      style: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+        fontSize: 22
+
+      ),),
+      centerTitle: true,
+    ),
     body: RefreshIndicator(
       onRefresh: _handleRefresh,
       child: Consumer<Salesprovider>(

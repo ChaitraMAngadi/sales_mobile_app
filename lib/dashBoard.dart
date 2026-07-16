@@ -1,14 +1,17 @@
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_mobile_app/appEnabletoggle.dart';
 import 'package:sales_mobile_app/loginPage.dart';
 import 'package:sales_mobile_app/pages/admins/adminsPage.dart';
 import 'package:sales_mobile_app/pages/doctors/doctorsPage.dart';
 import 'package:sales_mobile_app/pages/hospitals/hospitalPage.dart';
+import 'package:sales_mobile_app/pages/labtechnician/labTechniciansPage.dart';
 import 'package:sales_mobile_app/pages/profilesPage.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
+import 'package:sales_mobile_app/routes/app_router.dart';
 import 'package:sales_mobile_app/services/constants.dart';
 import 'package:sales_mobile_app/services/secureStorage.dart';
 import 'package:sales_mobile_app/theme/app_colors.dart';
@@ -35,7 +38,8 @@ final SecureStorage secureStorage = SecureStorage();
    HospitalPage(),
    DoctorsPage(),
    AdminsPage(),
-   ProfileScreen()
+   LabtechniciansPage()
+  //  ProfileScreen()
   ];
 
   @override
@@ -146,17 +150,17 @@ Widget build(BuildContext context) {
                       child: ListTile(
                         leading: const Icon(Icons.switch_account_rounded,
                         color: AppColors.primaryDark,),
-                        title: const Text('Appointments',
+                        title: const Text('Profile',
                         style: TextStyle(
                           color: AppColors.primaryDark
                         ),),
                         onTap: () {
                           Navigator.pop(context);
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) => const TodaysAppointmentsPage()),
-                          // );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const ProfileScreen()),
+                          );
                         },
                       ),
                     ),
@@ -189,7 +193,7 @@ Widget build(BuildContext context) {
                                 await secureStorage.readSecureData('token') ?? '';
                                 await secureStorage.readSecureData('phone') ?? '';
                     
-                            // context.router.replaceAll([LoginRoute()]);
+                            context.router.replaceAll([SplashRoute()]);
                           },
                         ),
                 ),
@@ -214,8 +218,8 @@ Widget build(BuildContext context) {
               label: "Admins",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profiles',
+              icon: Icon(FontAwesomeIcons.hospital),
+              label: 'Lab Technicians',
             ),
           ],
           backgroundColor:  Colors.white,

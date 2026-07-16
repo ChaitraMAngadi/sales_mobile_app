@@ -21,6 +21,7 @@ class Salesprovider extends ChangeNotifier {
 //////////////////////////Hospitals//////////////////////////////////////
 
 List<Map<String, dynamic>> allhospitals = [];
+List<Map<String, dynamic>> allhospitalnames = [];
 Map<String, dynamic> allprofiles = {};   
 //  List<Map<String, dynamic>> allprofiles = [];
 bool addinghospital = false;
@@ -68,6 +69,63 @@ Future<void> getallhospitals(BuildContext context) async {
 
             allhospitals = List<Map<String, dynamic>>.from(responseData["data"]);
             print(allhospitals);
+
+            notifyListeners();
+          } else if (response.statusCode == 404) {
+            final responseData = jsonDecode(response.body);
+          }
+        } catch (e) {
+          print(e);
+        }
+      } else if (response.statusCode == 404) {
+        final responseData = jsonDecode(response.body);
+      }
+    } catch (e) {
+      print(e);
+    }
+}
+
+Future<void> getallhospitalsname(BuildContext context) async {
+    String url = "${Constants.baseUrl}/api/v1/sales/getallhospitalnames";
+
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${Constants.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print(responseData);
+
+        allhospitalnames = List<Map<String, dynamic>>.from(responseData["data"]);
+        print(allhospitalnames);
+
+        notifyListeners();
+      } else if (response.statusCode == 401) {
+        await refreshtoken(context);
+
+        Constants.token = await secureStorage.readSecureData('token') ?? '';
+
+        try {
+          final response = await http.get(
+            Uri.parse(url),
+            headers: <String, String>{
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${Constants.token}',
+            },
+          );
+
+          if (response.statusCode == 200) {
+            final responseData = jsonDecode(response.body);
+            print(responseData);
+
+            allhospitalnames = List<Map<String, dynamic>>.from(responseData["data"]);
+            print(allhospitalnames);
 
             notifyListeners();
           } else if (response.statusCode == 404) {
@@ -715,6 +773,12 @@ Future<void> getallprofiles(BuildContext context) async {
 ///
 
 List<Map<String, dynamic>> alldoctors = [];
+bool addingdoctor = false;
+bool togglingdoctorstatus = false;
+bool updatingdoctorprice = false;
+
+
+
 
 Future<void> getalldoctors(BuildContext context) async {
     String url = "${Constants.baseUrl}/api/v1/sales/getalldoctors";
@@ -772,6 +836,1663 @@ Future<void> getalldoctors(BuildContext context) async {
       print(e);
     }
 }
+
+
+Future<void> addDoctor(
+String name, 
+String phone,
+String alternativephone,
+String gender,
+      String email, 
+      String password, 
+      String confirmpassword,
+      String qualification,
+      String specialization,
+      String registrationnumber,
+      String yearofregistration,
+      String boardofregistration,
+      String priceperdiagnosis,
+      List<String> associatedhospital, 
+       BuildContext context) async {
+    try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+
+
+      final Map<String, dynamic> requestBody = {
+        "name": name,
+        "gender": gender,
+        "email": email,
+        "phone": phone,
+        "password": password,
+        "confirm_password": confirmpassword,
+        "qualification": qualification,
+        "specialization": specialization,
+        "doctorRegistrationNumber": registrationnumber,
+        "year_of_registration": yearofregistration,
+        "board_of_registration": boardofregistration,
+        "price": priceperdiagnosis,
+        "hospitalIds": associatedhospital,
+      };
+      
+
+      final response = await http.post(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/adddoctor'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        addingdoctor = false;
+        print(responseData);
+        notifyListeners();
+
+        final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              'Doctor Registered successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+        getalldoctors(context);
+        Navigator.pop(context);
+        notifyListeners();
+      } else if(response.statusCode == 401){
+        await refreshtoken(context);
+
+        try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+
+
+      final Map<String, dynamic> requestBody = {
+        "name": name,
+        "gender": gender,
+        "email": email,
+        "phone": phone,
+        "password": password,
+        "confirm_password": confirmpassword,
+        "qualification": qualification,
+        "specialization": specialization,
+        "doctorRegistrationNumber": registrationnumber,
+        "year_of_registration": yearofregistration,
+        "board_of_registration": boardofregistration,
+        "price": priceperdiagnosis,
+        "hospitalIds": associatedhospital,
+      };
+    
+
+      final response = await http.post(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/adddoctor'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        addingdoctor = false;
+        print(responseData);
+        notifyListeners();
+
+        final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              'Doctor Registered successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+        getalldoctors(context);
+        Navigator.pop(context);
+        notifyListeners();
+      } else {
+        print(response.body);
+        addingdoctor = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } catch (e) {
+      addingdoctor = false;
+      final error = SnackBar(content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+      notifyListeners();
+    }
+      }
+       else {
+        print(response.body);
+        addingdoctor = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } catch (e) {
+      addingdoctor = false;
+      final error = SnackBar(content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+      notifyListeners();
+    }
+  }
+
+  Future<bool> toggleDoctorStatus(String hospitalId, bool currentStatus, BuildContext context) async {
+  togglingdoctorstatus = true;
+  notifyListeners();
+
+  // currentStatus true hai to disable karna hai, false hai to enable karna hai
+  final endpoint = currentStatus ? 'disabledoctor' : 'enabledoctor';
+
+  try {
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    final deviceHeaders = await DeviceHeaders.getDeviceHeaders();
+
+    final response = await http.patch(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/$endpoint/$hospitalId'),
+      headers: <String, String>{
+        'Authorization': 'Bearer ${Constants.token}',
+        'Content-Type': 'application/json',
+        ...deviceHeaders,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      togglinghospitalstatus = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.green[400],
+          content: Text(
+            currentStatus ? 'Doctor disabled successfully' : 'Doctor enabled successfully',
+            style: TextStyle(color: Colors.grey[50]),
+          ),
+        ));
+      }
+
+      await getalldoctors(context);
+      return true;
+    } else if (response.statusCode == 401) {
+      await refreshtoken(context);
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+
+      final retryResponse = await http.patch(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/$endpoint/$hospitalId'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...deviceHeaders,
+        },
+      );
+
+      togglingdoctorstatus = false;
+      notifyListeners();
+
+      if (retryResponse.statusCode == 200) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              currentStatus ? 'Doctor disabled successfully' : 'Doctor enabled successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ),
+          ));
+        }
+        await getalldoctors(context);
+        return true;
+      } else {
+        print('Toggle status retry failed: ${retryResponse.body}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(_extractErrorMessage(retryResponse)),
+          ));
+        }
+        return false;
+      }
+    } else {
+      print('Toggle status failed: ${response.statusCode} - ${response.body}');
+      togglingdoctorstatus = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.red[400],
+          content: Text(_extractErrorMessage(response)),
+        ));
+      }
+      return false;
+    }
+  } catch (e) {
+    print('Toggle status exception: $e');
+    togglingdoctorstatus = false;
+    notifyListeners();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+    return false;
+  }
+}
+
+List<dynamic> priceHistory = [];
+bool fetchingPriceHistory = false;
+
+Future<void> getPriceHistory(String doctorId, BuildContext context) async {
+  try {
+    fetchingPriceHistory = true;
+    notifyListeners();
+
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    final headers = await DeviceHeaders.getDeviceHeaders();
+
+    final response = await http.get(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/getalldoctorprice/$doctorId'),
+      headers: <String, String>{
+        'Authorization': 'Bearer ${Constants.token}',
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      priceHistory = responseData['data'] ?? [];
+      fetchingPriceHistory = false;
+      notifyListeners();
+    } else if (response.statusCode == 401) {
+      await refreshtoken(context);
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final retryResponse = await http.get(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/pricehistory/$doctorId'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+      );
+      if (retryResponse.statusCode == 200) {
+        final responseData = jsonDecode(retryResponse.body);
+        priceHistory = responseData['data'] ?? [];
+      }
+      fetchingPriceHistory = false;
+      notifyListeners();
+    } else {
+      fetchingPriceHistory = false;
+      priceHistory = [];
+      notifyListeners();
+    }
+  } catch (e) {
+    fetchingPriceHistory = false;
+    priceHistory = [];
+    notifyListeners();
+    final error = SnackBar(content: Text(e.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(error);
+  }
+}
+
+bool updatingdoctor = false;
+
+Future<void> editDoctor({
+  required String doctorId,
+  required String name,
+  required String phone,
+  required String alternativephone,
+  required String gender,
+  required String email,
+  required String password,
+  required String confirmpassword,
+  required String qualification,
+  required String specialization,
+  required String registrationnumber,
+  required String yearofregistration,
+  required String boardofregistration,
+  required String priceperdiagnosis,
+  required List<String> associatedhospital,
+  required BuildContext context,
+}) async {
+  try {
+    updatingdoctor = true;
+    notifyListeners();
+
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    final headers = await DeviceHeaders.getDeviceHeaders();
+
+    final Map<String, dynamic> requestBody = {
+      "name": name,
+      "gender": gender,
+      "email": email,
+      "phone": phone,
+      "qualification": qualification,
+      "specialization": specialization,
+      "doctorRegistrationNumber": registrationnumber,
+      "year_of_registration": yearofregistration,
+      "board_of_registration": boardofregistration,
+      "price": priceperdiagnosis,
+      "hospitalIds": associatedhospital,
+    };
+
+    // Password sirf tab bhejo jab user ne naya password type kiya ho
+    if (password.isNotEmpty) {
+      requestBody["password"] = password;
+      requestBody["confirm_password"] = confirmpassword;
+    }
+    if(alternativephone.isNotEmpty){
+      requestBody['phone2'] = alternativephone;
+    }
+
+    final response = await http.put(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/editdoctor/$doctorId'),
+      headers: <String, String>{
+        'Authorization': 'Bearer ${Constants.token}',
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      updatingdoctor = false;
+      notifyListeners();
+
+      final successSnackbar = SnackBar(
+        backgroundColor: Colors.green[400],
+        content: Text(
+          'Doctor updated successfully',
+          style: TextStyle(color: Colors.grey[50]),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(successSnackbar);
+      await getalldoctors(context);
+      Navigator.pop(context);
+    } else if (response.statusCode == 401) {
+      await refreshtoken(context);
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final retryResponse = await http.put(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/editdoctor/$doctorId'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      updatingdoctor = false;
+      if (retryResponse.statusCode == 200 || retryResponse.statusCode == 201) {
+        notifyListeners();
+        final successSnackbar = SnackBar(
+          backgroundColor: Colors.green[400],
+          content: Text(
+            'Doctor updated successfully',
+            style: TextStyle(color: Colors.grey[50]),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(successSnackbar);
+        await getalldoctors(context);
+        Navigator.pop(context);
+      } else {
+        final responseData = jsonDecode(retryResponse.body);
+        final snackbar = SnackBar(
+          backgroundColor: Colors.red[400],
+          content: Text(
+            responseData["msg"] ?? "Something went wrong",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } else {
+      updatingdoctor = false;
+      final responseData = jsonDecode(response.body);
+      final snackbar = SnackBar(
+        backgroundColor: Colors.red[400],
+        content: Text(
+          responseData["msg"] ?? "Something went wrong",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackbar);
+      notifyListeners();
+    }
+  } catch (e) {
+    updatingdoctor = false;
+    notifyListeners();
+    final error = SnackBar(content: Text(e.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(error);
+  }
+}
+
+Future<void> changedoctorpassword(String newPassword, String confirmPassword,
+ String doctid, BuildContext context) async {
+    try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+      print(doctid);
+
+      final Map<String, dynamic> requestBody = {
+        "newPassword": newPassword,
+        "confirm_password": confirmPassword,
+      };
+
+      String url = "${Constants.baseUrl}/api/v1/sales/resetpassworddoctor/$doctid";
+      var response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 401) {
+        await refreshtoken(context);
+        Constants.token = await secureStorage.readSecureData('token') ?? '';
+        final retryHeaders = await DeviceHeaders.getDeviceHeaders();
+        response = await http.patch(
+          Uri.parse(url),
+          headers: <String, String>{
+            'Authorization': 'Bearer ${Constants.token}',
+            'Content-Type': 'application/json',
+            ...retryHeaders,
+          },
+          body: jsonEncode(requestBody),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print(responseData);
+        final msg = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              "New password updated successfully",
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(msg);
+        Navigator.pop(context);
+        notifyListeners();
+      } else {
+        final responseData = jsonDecode(response.body);
+        final msg = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData['msg'],
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(msg);
+      }
+    } catch (e) {
+      final error = SnackBar(
+          backgroundColor: Colors.red[400], content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+    }
+  }
+
+  Future<void> changeDoctorValidity({
+  required String doctorId,
+  required String validTill,
+  required BuildContext context,
+}) async {
+  try {
+    updatingdoctor = true;
+    notifyListeners();
+final headers = await DeviceHeaders.getDeviceHeaders();
+    final response = await http.patch(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/changedoctorvalidity/$doctorId'),
+       headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+      body: jsonEncode({'validdate': validTill}),
+    );
+
+    if (response.statusCode == 200) {
+      final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              'Doctor Validity Updated successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+         notifyListeners();
+    } else if(response.statusCode == 401){
+    await  refreshtoken(context);
+
+      try {
+    updatingdoctor = true;
+    notifyListeners();
+final headers = await DeviceHeaders.getDeviceHeaders();
+    final response = await http.patch(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/changedoctorvalidity/$doctorId'),
+       headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+      body: jsonEncode({'validTill': validTill}),
+    );
+
+    if (response.statusCode == 200) {
+      final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              'Doctor Validity Updated successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+       getalldoctors(context);
+         notifyListeners();
+    } else {
+      updatingdoctor = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+    }
+  } catch (e) {
+    print(e);
+    // error handling
+  } finally {
+    updatingdoctor = false;
+    notifyListeners();
+  }
+    }
+    else {
+      updatingdoctor = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+    }
+  } catch (e) {
+    print(e);
+    // error handling
+  } finally {
+    updatingdoctor = false;
+    notifyListeners();
+  }
+}
+
+Future<void> updateDoctorPrice({
+  required String doctorId,
+  required String price,
+  required String effectiveDate,
+  required BuildContext context,
+}) async {
+  try {
+    print("button clicked");
+    updatingdoctorprice = true;
+    notifyListeners();
+final headers = await DeviceHeaders.getDeviceHeaders();
+    final response = await http.put(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/updatedoctorprice/$doctorId'),
+       headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+      body: jsonEncode({'price': price,
+      'effectiveFrom': effectiveDate,
+      }),
+    );
+ final responseData = jsonDecode(response.body);
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              responseData['msg'],
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+         notifyListeners();
+    } else if(response.statusCode == 401){
+    await  refreshtoken(context);
+
+      try {
+    updatingdoctorprice = true;
+    notifyListeners();
+final headers = await DeviceHeaders.getDeviceHeaders();
+    final response = await http.patch(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/updatedoctorprice/$doctorId'),
+       headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+       body: jsonEncode({'price': price,
+      'effectiveFrom': effectiveDate,
+      }),
+    );
+     final responseData = jsonDecode(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              responseData["msg"],
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+       getalldoctors(context);
+         notifyListeners();
+    } else {
+      updatingdoctorprice = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+    }
+  } catch (e) {
+    print(e);
+    // error handling
+  } finally {
+    updatingdoctorprice = false;
+    notifyListeners();
+  }
+    }
+    else {
+      updatingdoctorprice = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+    }
+  } catch (e) {
+    print(e);
+    // error handling
+  } finally {
+    updatingdoctorprice = false;
+    notifyListeners();
+  }
+}
+
+
+////////////////////////////////////////// Admins //////////////////////////////////////////////
+
+List<Map<String, dynamic>> alladmins = [];
+bool addingadmin = false;
+bool togglingadminstatus = false;
+bool updatingadmin = false;
+
+
+
+Future<void> getalladmins(BuildContext context) async {
+    String url = "${Constants.baseUrl}/api/v1/sales/getalladmins";
+
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${Constants.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print(responseData);
+
+        alladmins = List<Map<String, dynamic>>.from(responseData["data"]);
+        print(alladmins);
+
+        notifyListeners();
+      } else if (response.statusCode == 401) {
+        await refreshtoken(context);
+
+        Constants.token = await secureStorage.readSecureData('token') ?? '';
+
+        try {
+          final response = await http.get(
+            Uri.parse(url),
+            headers: <String, String>{
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${Constants.token}',
+            },
+          );
+
+          if (response.statusCode == 200) {
+            final responseData = jsonDecode(response.body);
+            print(responseData);
+
+            alladmins = List<Map<String, dynamic>>.from(responseData["data"]);
+            print(alladmins);
+
+            notifyListeners();
+          } else if (response.statusCode == 404) {
+            final responseData = jsonDecode(response.body);
+          }
+        } catch (e) {
+          print(e);
+        }
+      } else if (response.statusCode == 404) {
+        final responseData = jsonDecode(response.body);
+      }
+    } catch (e) {
+      print(e);
+    }
+}
+
+Future<void> addAdmin(String name, String phone, 
+      String email, String password, String confirmpassword, List<String> associateddoctor , BuildContext context) async {
+    try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+
+
+      final Map<String, dynamic> requestBody = {
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "password": password,
+        "confirm_password": confirmpassword,
+        "doctorIds": associateddoctor
+        
+      };
+
+      final response = await http.post(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/addadmin'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        addingadmin = false;
+        print(responseData);
+        notifyListeners();
+
+        final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              'Admin Registered successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+        getalladmins(context);
+        Navigator.pop(context);
+         notifyListeners();
+      } else if(response.statusCode == 401){
+        await refreshtoken(context);
+
+        try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+
+
+      final Map<String, dynamic> requestBody = {
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "password": password,
+        "confirm_password": confirmpassword,
+        "doctorIds": associateddoctor
+      };
+    
+
+      final response = await http.post(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/addadmin'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        addingadmin = false;
+        print(responseData);
+        notifyListeners();
+
+        final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              'Admin Registered successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+        getalladmins(context);
+        Navigator.pop(context);
+         notifyListeners();
+      } else {
+        print(response.body);
+        addingadmin = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } catch (e) {
+      addingadmin = false;
+      final error = SnackBar(content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+      notifyListeners();
+    }
+      }
+       else {
+        print(response.body);
+        addingadmin = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } catch (e) {
+      addingadmin = false;
+      final error = SnackBar(content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+      notifyListeners();
+    }
+  }
+
+Future<bool> toggleAdminStatus(String hospitalId, bool currentStatus, BuildContext context) async {
+  togglingadminstatus = true;
+  notifyListeners();
+
+  // currentStatus true hai to disable karna hai, false hai to enable karna hai
+  final endpoint = currentStatus ? 'disableadmin' : 'enableadmin';
+
+  try {
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    final deviceHeaders = await DeviceHeaders.getDeviceHeaders();
+
+    final response = await http.patch(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/$endpoint/$hospitalId'),
+      headers: <String, String>{
+        'Authorization': 'Bearer ${Constants.token}',
+        'Content-Type': 'application/json',
+        ...deviceHeaders,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      togglingadminstatus = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.green[400],
+          content: Text(
+            currentStatus ? 'Admin disabled successfully' : 'Admin enabled successfully',
+            style: TextStyle(color: Colors.grey[50]),
+          ),
+        ));
+      }
+
+      await getalladmins(context);
+      return true;
+    } else if (response.statusCode == 401) {
+      await refreshtoken(context);
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+
+      final retryResponse = await http.patch(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/$endpoint/$hospitalId'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...deviceHeaders,
+        },
+      );
+
+      togglingadminstatus = false;
+      notifyListeners();
+
+      if (retryResponse.statusCode == 200) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              currentStatus ? 'Admin disabled successfully' : 'Admin enabled successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ),
+          ));
+        }
+        await getalladmins(context);
+        return true;
+      } else {
+        print('Toggle status retry failed: ${retryResponse.body}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(_extractErrorMessage(retryResponse)),
+          ));
+        }
+        return false;
+      }
+    } else {
+      print('Toggle status failed: ${response.statusCode} - ${response.body}');
+      togglingadminstatus = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.red[400],
+          content: Text(_extractErrorMessage(response)),
+        ));
+      }
+      return false;
+    }
+  } catch (e) {
+    print('Toggle status exception: $e');
+    togglingadminstatus = false;
+    notifyListeners();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+    return false;
+  }
+}
+
+Future<void> editAdmin({
+  required String adminId,
+  required String name,
+  required String phone,
+  required String email,
+  required List<String> associateddoctor,
+  required BuildContext context,
+}) async {
+  try {
+    updatingadmin = true;
+    notifyListeners();
+
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    final headers = await DeviceHeaders.getDeviceHeaders();
+
+    final Map<String, dynamic> requestBody = {
+      "name": name,
+      "email": email,
+      "phone": phone,
+      "doctorIds": associateddoctor,
+    };
+
+
+    final response = await http.put(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/editadmin/$adminId'),
+      headers: <String, String>{
+        'Authorization': 'Bearer ${Constants.token}',
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      updatingadmin = false;
+      notifyListeners();
+
+      final successSnackbar = SnackBar(
+        backgroundColor: Colors.green[400],
+        content: Text(
+          'Admin updated successfully',
+          style: TextStyle(color: Colors.grey[50]),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(successSnackbar);
+      await getalladmins(context);
+      Navigator.pop(context);
+    } else if (response.statusCode == 401) {
+      await refreshtoken(context);
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final retryResponse = await http.put(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/editadmin/$adminId'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      updatingadmin = false;
+      if (retryResponse.statusCode == 200 || retryResponse.statusCode == 201) {
+        notifyListeners();
+        final successSnackbar = SnackBar(
+          backgroundColor: Colors.green[400],
+          content: Text(
+            'Admin updated successfully',
+            style: TextStyle(color: Colors.grey[50]),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(successSnackbar);
+        await getalladmins(context);
+        Navigator.pop(context);
+      } else {
+        final responseData = jsonDecode(retryResponse.body);
+        final snackbar = SnackBar(
+          backgroundColor: Colors.red[400],
+          content: Text(
+            responseData["msg"] ?? "Something went wrong",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } else {
+      updatingadmin = false;
+      final responseData = jsonDecode(response.body);
+      final snackbar = SnackBar(
+        backgroundColor: Colors.red[400],
+        content: Text(
+          responseData["msg"] ?? "Something went wrong",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackbar);
+      notifyListeners();
+    }
+  } catch (e) {
+    updatingadmin = false;
+    notifyListeners();
+    final error = SnackBar(content: Text(e.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(error);
+  }
+}
+
+Future<void> changeadminpassword(String newPassword, String confirmPassword,
+ String doctid, BuildContext context) async {
+    try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+      print(doctid);
+
+      final Map<String, dynamic> requestBody = {
+        "newPassword": newPassword,
+        "confirm_password": confirmPassword,
+      };
+
+      String url = "${Constants.baseUrl}/api/v1/sales/resetpasswordadmin/$doctid";
+      var response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 401) {
+        await refreshtoken(context);
+        Constants.token = await secureStorage.readSecureData('token') ?? '';
+        final retryHeaders = await DeviceHeaders.getDeviceHeaders();
+        response = await http.patch(
+          Uri.parse(url),
+          headers: <String, String>{
+            'Authorization': 'Bearer ${Constants.token}',
+            'Content-Type': 'application/json',
+            ...retryHeaders,
+          },
+          body: jsonEncode(requestBody),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print(responseData);
+        final msg = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              "New password updated successfully",
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(msg);
+        Navigator.pop(context);
+        notifyListeners();
+      } else {
+        final responseData = jsonDecode(response.body);
+        final msg = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData['msg'],
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(msg);
+      }
+    } catch (e) {
+      final error = SnackBar(
+          backgroundColor: Colors.red[400], content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+    }
+  }
+
+
+///////////////////////////////// labtechnicians ///////////////////////////////////////
+
+List<Map<String, dynamic>> labtechnicians = [];
+bool addinglabtechnician = false;
+bool togglinglabtechnicianstatus = false;
+
+
+
+
+
+Future<void> getalllabtechnicians(BuildContext context) async {
+    String url = "${Constants.baseUrl}/api/v1/sales/getalllabtechnicians";
+
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${Constants.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print(responseData);
+
+        labtechnicians = List<Map<String, dynamic>>.from(responseData["data"]);
+        print(labtechnicians);
+
+        notifyListeners();
+      } else if (response.statusCode == 401) {
+        await refreshtoken(context);
+
+        Constants.token = await secureStorage.readSecureData('token') ?? '';
+
+        try {
+          final response = await http.get(
+            Uri.parse(url),
+            headers: <String, String>{
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${Constants.token}',
+            },
+          );
+
+          if (response.statusCode == 200) {
+            final responseData = jsonDecode(response.body);
+            print(responseData);
+
+            labtechnicians = List<Map<String, dynamic>>.from(responseData["data"]);
+            print(labtechnicians);
+
+            notifyListeners();
+          } else if (response.statusCode == 404) {
+            final responseData = jsonDecode(response.body);
+          }
+        } catch (e) {
+          print(e);
+        }
+      } else if (response.statusCode == 404) {
+        final responseData = jsonDecode(response.body);
+      }
+    } catch (e) {
+      print(e);
+    }
+}
+
+
+Future<void> addLabtechnician(String name, String phone, 
+      String email, String address, String password, String confirmpassword, BuildContext context) async {
+    try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+
+
+      final Map<String, dynamic> requestBody = {
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "address": address,
+        "password": password,
+        "confirm_password": confirmpassword,
+        
+      };
+
+      final response = await http.post(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/addlabtechnician'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        addinglabtechnician = false;
+        print(responseData);
+        notifyListeners();
+
+        final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              'Lab technician Registered successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+        getalllabtechnicians(context);
+        Navigator.pop(context);
+         notifyListeners();
+      } else if(response.statusCode == 401){
+        await refreshtoken(context);
+
+        try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+
+
+      final Map<String, dynamic> requestBody = {
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "address": address,
+        "password": password,
+        "confirm_password": confirmpassword,
+      };
+
+    
+
+      final response = await http.post(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/addlabtechnician'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        addinglabtechnician = false;
+        print(responseData);
+        notifyListeners();
+
+        final sucessSnackbar = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              'Lab technician Registered successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+
+        ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+        getalllabtechnicians(context);
+        Navigator.pop(context);
+         notifyListeners();
+      } else {
+        print(response.body);
+        addinglabtechnician = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } catch (e) {
+      addinglabtechnician = false;
+      final error = SnackBar(content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+      notifyListeners();
+    }
+      }
+       else {
+        print(response.body);
+        addinglabtechnician = false;
+        final responseData = jsonDecode(response.body);
+        final snackbar = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData["msg"],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } catch (e) {
+      addinglabtechnician = false;
+      final error = SnackBar(content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+      notifyListeners();
+    }
+  }
+
+  Future<bool> toggleLabtechnicianStatus(String hospitalId, bool currentStatus, BuildContext context) async {
+  togglinglabtechnicianstatus = true;
+  notifyListeners();
+
+  // currentStatus true hai to disable karna hai, false hai to enable karna hai
+  final endpoint = currentStatus ? 'disablelabtechnician' : 'enablelabtechnician';
+
+  try {
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    final deviceHeaders = await DeviceHeaders.getDeviceHeaders();
+
+    final response = await http.patch(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/$endpoint/$hospitalId'),
+      headers: <String, String>{
+        'Authorization': 'Bearer ${Constants.token}',
+        'Content-Type': 'application/json',
+        ...deviceHeaders,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      togglinglabtechnicianstatus = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.green[400],
+          content: Text(
+            currentStatus ? 'Lab Technician disabled successfully' : 'Lab Technician enabled successfully',
+            style: TextStyle(color: Colors.grey[50]),
+          ),
+        ));
+      }
+
+      await getalllabtechnicians(context);
+      return true;
+    } else if (response.statusCode == 401) {
+      await refreshtoken(context);
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+
+      final retryResponse = await http.patch(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/$endpoint/$hospitalId'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...deviceHeaders,
+        },
+      );
+
+      togglinglabtechnicianstatus = false;
+      notifyListeners();
+
+      if (retryResponse.statusCode == 200) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              currentStatus ? 'Lab Technician disabled successfully' : 'Lab Technician enabled successfully',
+              style: TextStyle(color: Colors.grey[50]),
+            ),
+          ));
+        }
+        await getalllabtechnicians(context);
+        return true;
+      } else {
+        print('Toggle status retry failed: ${retryResponse.body}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(_extractErrorMessage(retryResponse)),
+          ));
+        }
+        return false;
+      }
+    } else {
+      print('Toggle status failed: ${response.statusCode} - ${response.body}');
+      togglinglabtechnicianstatus = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.red[400],
+          content: Text(_extractErrorMessage(response)),
+        ));
+      }
+      return false;
+    }
+  } catch (e) {
+    print('Toggle status exception: $e');
+    togglinglabtechnicianstatus = false;
+    notifyListeners();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+    return false;
+  }
+}
+
+bool updatingLabtechnician = false;
+
+Future<void> editLabtechnician({
+  required String adminId,
+  required String name,
+  required String phone,
+  required String email,
+  required String address,
+  required BuildContext context,
+}) async {
+  try {
+    updatingLabtechnician = true;
+    notifyListeners();
+
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    final headers = await DeviceHeaders.getDeviceHeaders();
+
+    final Map<String, dynamic> requestBody = {
+      "name": name,
+      "email": email,
+      "phone": phone,
+      "address": address,
+    };
+
+
+    final response = await http.put(
+      Uri.parse('${Constants.baseUrl}/api/v1/sales/editlabtechnician/$adminId'),
+      headers: <String, String>{
+        'Authorization': 'Bearer ${Constants.token}',
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      updatingLabtechnician = false;
+      notifyListeners();
+
+      final successSnackbar = SnackBar(
+        backgroundColor: Colors.green[400],
+        content: Text(
+          'Lab Technician updated successfully',
+          style: TextStyle(color: Colors.grey[50]),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(successSnackbar);
+      await getalllabtechnicians(context);
+      Navigator.pop(context);
+    } else if (response.statusCode == 401) {
+      await refreshtoken(context);
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final retryResponse = await http.put(
+        Uri.parse('${Constants.baseUrl}/api/v1/sales/editlabtechnician/$adminId'),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      updatingLabtechnician = false;
+      if (retryResponse.statusCode == 200 || retryResponse.statusCode == 201) {
+        notifyListeners();
+        final successSnackbar = SnackBar(
+          backgroundColor: Colors.green[400],
+          content: Text(
+            'Lab Technican updated successfully',
+            style: TextStyle(color: Colors.grey[50]),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(successSnackbar);
+        await getalllabtechnicians(context);
+        Navigator.pop(context);
+      } else {
+        final responseData = jsonDecode(retryResponse.body);
+        final snackbar = SnackBar(
+          backgroundColor: Colors.red[400],
+          content: Text(
+            responseData["msg"] ?? "Something went wrong",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        notifyListeners();
+      }
+    } else {
+      updatingLabtechnician = false;
+      final responseData = jsonDecode(response.body);
+      final snackbar = SnackBar(
+        backgroundColor: Colors.red[400],
+        content: Text(
+          responseData["msg"] ?? "Something went wrong",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackbar);
+      notifyListeners();
+    }
+  } catch (e) {
+    updatingLabtechnician = false;
+    notifyListeners();
+    final error = SnackBar(content: Text(e.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(error);
+  }
+}
+
+Future<void> changelabtechnicianpassword(String newPassword, String confirmPassword,
+ String doctid, BuildContext context) async {
+    try {
+      Constants.token = await secureStorage.readSecureData('token') ?? '';
+      final headers = await DeviceHeaders.getDeviceHeaders();
+      print(doctid);
+
+      final Map<String, dynamic> requestBody = {
+        "newPassword": newPassword,
+        "confirm_password": confirmPassword,
+      };
+
+      String url = "${Constants.baseUrl}/api/v1/sales/resetpasswordlabtechnician/$doctid";
+      var response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Authorization': 'Bearer ${Constants.token}',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 401) {
+        await refreshtoken(context);
+        Constants.token = await secureStorage.readSecureData('token') ?? '';
+        final retryHeaders = await DeviceHeaders.getDeviceHeaders();
+        response = await http.patch(
+          Uri.parse(url),
+          headers: <String, String>{
+            'Authorization': 'Bearer ${Constants.token}',
+            'Content-Type': 'application/json',
+            ...retryHeaders,
+          },
+          body: jsonEncode(requestBody),
+        );
+      }
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print(responseData);
+        final msg = SnackBar(
+            backgroundColor: Colors.green[400],
+            content: Text(
+              "New password updated successfully",
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(msg);
+        Navigator.pop(context);
+        notifyListeners();
+      } else {
+        final responseData = jsonDecode(response.body);
+        final msg = SnackBar(
+            backgroundColor: Colors.red[400],
+            content: Text(
+              responseData['msg'],
+              style: TextStyle(color: Colors.grey[50]),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(msg);
+      }
+    } catch (e) {
+      final error = SnackBar(
+          backgroundColor: Colors.red[400], content: Text(e.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(error);
+    }
+  }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////

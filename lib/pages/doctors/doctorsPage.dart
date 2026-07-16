@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
 import 'package:sales_mobile_app/routes/app_router.dart';
+import 'package:sales_mobile_app/services/constants.dart';
+import 'package:sales_mobile_app/services/secureStorage.dart';
 import 'package:sales_mobile_app/theme/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:io';
@@ -19,8 +21,11 @@ class DoctorsPage extends StatefulWidget {
 
 class _DoctorsPageState extends State<DoctorsPage> {
     final TextEditingController _searchController = TextEditingController();
-  late Future fetchhospitals;
+  late Future fetchhospitalsname;
   late Future fetchdoctors;
+    final SecureStorage secureStorage = SecureStorage();
+      String _searchQuery = ''; 
+
 
 
 @override
@@ -28,10 +33,39 @@ class _DoctorsPageState extends State<DoctorsPage> {
     // TODO: implement initState
     super.initState();
      Salesprovider salesprovider = context.read<Salesprovider>();
-    fetchhospitals = salesprovider.getallhospitals(context);
+    fetchhospitalsname = salesprovider.getallhospitalsname(context);
     fetchdoctors = salesprovider.getalldoctors(context);
+
+    _searchController.addListener(() {   
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+      });
+    });
+
+
   }
 
+@override
+  void dispose() {
+    _searchController.dispose();   // 👈 naya - cleanup
+    super.dispose();
+  }
+
+  List<Map<String, dynamic>> _filterHospitals(List<Map<String, dynamic>> hospitals) {
+  if (_searchQuery.isEmpty) {
+    return hospitals;
+  }
+
+  return hospitals.where((hospital) {
+    final name = (hospital['name'] ?? '').toString().toLowerCase();
+    final id = (hospital['userid'] ?? '').toString().toLowerCase();
+    final phone = (hospital['phone'] ?? '').toString().toLowerCase();
+
+    return name.contains(_searchQuery) ||
+        id.contains(_searchQuery) ||
+        phone.contains(_searchQuery);
+  }).toList();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +74,25 @@ class _DoctorsPageState extends State<DoctorsPage> {
         children: [
           _TopActionsBar(),
           _buildSearchBar(),
-          _buildMainContent(salesprovider),
+          Expanded(child: _buildMainContent(salesprovider)),
           
         ],
       );
     },);
   }
 
+
+Future<void> _handleRefresh() async {
+    Salesprovider salesprovider = context.read<Salesprovider>();
+
+    await Future.delayed(Duration(seconds: 2));
+    
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    setState(() {
+      fetchdoctors = salesprovider.getalldoctors(context);
+    });
+  }
+  
   Widget _buildLoadingState() {
   return const Center(
     child: Column(
@@ -82,7 +128,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
 }
 
   Widget _buildMainContent(Salesprovider provider){
-    return Expanded(
+    return RefreshIndicator(
+      onRefresh: () => _handleRefresh(),
       child: FutureBuilder(future: fetchdoctors, 
       builder:(context, snapshot) 
       {
@@ -92,8 +139,10 @@ class _DoctorsPageState extends State<DoctorsPage> {
                   child: SafeArea(child: _buildLoadingState()),
                 );
               }
+                            final filtereddoctors = _filterHospitals(provider.alldoctors);   // 👈 naya
+
       
-                  if (provider.alldoctors.isEmpty) {
+                  if (filtereddoctors.isEmpty) {
                     return const Center(
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
@@ -113,53 +162,62 @@ class _DoctorsPageState extends State<DoctorsPage> {
         return Container(
           height:  MediaQuery.of(context).size.height * 0.65,
           child: ListView.builder(
-            itemCount:provider.alldoctors.length ,
+            itemCount:filtereddoctors.length ,
           
             itemBuilder:(context, index) {
-                final item = provider.alldoctors[index];
+                final item = filtereddoctors[index];
       
               
-            return HospitalCard(onView: ()=> showDialog(
+            return DoctorCard(
+              onView: ()=> showDialog(
                           context: context,
-                          builder: (_) => ViewHospitalModel(
+                          builder: (_) => ViewDoctorModel(
                             name: item['name']??"",
-                            adminId: item['userid']??"",
+                            gender: item['gender'],
                             email: item['email'] ?? "",
-                            phonenumber: item['phone'] ?? "",
+                            phonenumber: item['phone'] ?? 0,
+                            registrationnumber: item['doctorRegistrationNumber'],
+                            registrationdetails:" ${item['year_of_registration']}, ${item['board_of_registration']}",
+                            qualification: item['qualification'],
+                            specialization: item['specialization'],
+                            phone2:item['phone2']?? 0,
+                           associatedhospital: item['associatedHospital'] ?? [],
+      
                             createdat: item['createdAt']??"",
-                            address: item['address']??"",
+                            
                           ),
                         ), 
                          onEdit: () {
-                                              context.router.push(
-                                                EditHospitalRoute(
-                                              hospitalId: item["userid"],
-                                              name: item['name'],
-                                              email: item['email'],
-                                              phone: item['phone'],
-                                              address: item['address'],
-                                              userid: item["userid"],
-                                              ));
-      
-                         },
+        context.router.push(
+          EditDoctorRoute(
+      doctorData: item,
+      allhospitals: provider.allhospitalnames,
+          ),
+        );
+      },
             onToggleActive: () {
-  _showToggleStatusConfirmation(
-    context,
-    item['userid'],
-    item['isActive'] ?? false,
-    item['name'] ?? 'this hospital',
-  );
-},
-            onUpload: provider.uploadinglogo 
-        ? (){} 
-        : () async {
-        await _pickAndUploadLogo(context, item['userid']);
-      }, 
-      onDelete: () {
-  _showDeleteConfirmation(context, item['userid'], item['name'] ?? 'this hospital');
-},
+        _showToggleStatusConfirmation(
+          context,
+          item['userid'],
+          item['isActive'] ?? false,
+          item['name'] ?? 'this Doctor',
+        );
+      },
+            onPriceTap: () async {
+        await provider.getPriceHistory(item['userid'], context);
+        if (context.mounted) {
+          showDialog(
+      context: context,
+      builder: (_) => PriceHistoryModal(
+        priceHistory: provider.priceHistory,
+      ),
+          );
+        }
+      },
       
-       hospitalname: item['name'], hospitalId: item['userid'], isactive: item['isActive'], phone: item['phone'], logoUrl: item['logo']??'');
+       name: item['name'], id: item['userid'], isactive: item['isActive'], phone: item['phone'], createdat: item['createdAt']??'',
+       validtill:item['validity'] ,
+       );
           },),
         );
       },),
@@ -179,9 +237,17 @@ class _DoctorsPageState extends State<DoctorsPage> {
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Search doctors...',
+          hintText: 'Search doctors by name, ID, or phone...',   // 👈 updated hint
             hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 16),
             prefixIcon: const Icon(Icons.search, color: Color(0xFFE5544E)),
+            suffixIcon: _searchQuery.isNotEmpty   // 👈 naya - clear button
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.grey),
+                  onPressed: () {
+                    _searchController.clear();
+                  },
+                )
+              : null,
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 16),
           ),
@@ -190,160 +256,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
     );
   }
 
-Future<void> _pickAndUploadLogo(BuildContext context, String hospitalId) async {
-  final salesprovider = context.read<Salesprovider>();
-  final ImagePicker picker = ImagePicker();
 
-  final XFile? pickedFile = await picker.pickImage(
-    source: ImageSource.gallery,   // sirf gallery se, camera nahi
-    imageQuality: 85,
-  );
-
-  if (pickedFile == null) {
-    return; // user cancelled
-  }
-
-  File file = File(pickedFile.path);
-  final fileSizeInBytes = await file.length();
-  const maxSizeInBytes = 500 * 1024; // 500 KB
-
-  if (fileSizeInBytes > maxSizeInBytes) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.red,
-          content: Text('File size must be 500KB or less'),
-        ),
-      );
-    }
-    return;
-  }
-
-  await salesprovider.uploadHospitalLogo(hospitalId, file, context);
-}
-
-Future<void> _showDeleteConfirmation(BuildContext context, String hospitalId, String hospitalName) async {
-  final salesprovider = context.read<Salesprovider>();
-
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return Dialog(
-        insetPadding: EdgeInsets.symmetric(horizontal: 16),
-        
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Row(
-               mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Confirm Delete',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),),
-            ],
-          ),
-          SizedBox(height: 8,),
-          Text(
-            'Are you sure you want to delete "$hospitalName" Logo ? This action cannot be undone.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16,
-            
-            ),
-          ),
-           SizedBox(height: 20,),
-          Row(
-            children: [
-              Expanded(
-                child: 
-                // TextButton(
-                // onPressed: () => Navigator.pop(dialogContext),
-                // child: Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
-                //             ),
-                            Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.secondaryGradient,
-                  borderRadius: BorderRadius.all(Radius.circular(16))
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
-                ),
-              )
-              ),
-              SizedBox(width: 16,),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.all(Radius.circular(16))
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(dialogContext); // close confirmation dialog first
-                    await salesprovider.deleteHospitalLogo(hospitalId, context);
-                  },
-                  child: const Text('Delete'),
-                ),
-              ),
-            ),
-            ],
-          )
-            ],
-          ),
-        ),
-        // title: const Row(
-        //   children: [
-        //     Icon(Icons.warning_amber_rounded, color: Colors.red),
-        //     SizedBox(width: 8),
-        //     Text('Confirm Delete'),
-        //   ],
-        // ),
-        // content: Text(
-        //   'Are you sure you want to delete "$hospitalName"? This action cannot be undone.',
-        //   style: const TextStyle(fontSize: 15),
-        // ),
-        // actions: [
-        //   TextButton(
-        //     onPressed: () => Navigator.pop(dialogContext),
-        //     child: Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
-        //   ),
-        //   ElevatedButton(
-        //     style: ElevatedButton.styleFrom(
-        //       backgroundColor: Colors.red,
-        //       foregroundColor: Colors.white,
-        //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        //     ),
-        //     onPressed: () async {
-        //       Navigator.pop(dialogContext); // close confirmation dialog first
-        //       await salesprovider.deleteHospital(hospitalId, context);
-        //     },
-        //     child: const Text('Delete'),
-        //   ),
-        // ],
-      );
-    },
-  );
-}
   
 }
 
@@ -385,7 +298,7 @@ Future<void> _showToggleStatusConfirmation(
             ),
             onPressed: () async {
               Navigator.pop(dialogContext);
-              await salesprovider.toggleHospitalStatus(hospitalId, currentStatus, context);
+              await salesprovider.toggleDoctorStatus(hospitalId, currentStatus, context);
             },
             child: Text(actionText[0].toUpperCase() + actionText.substring(1)),
           ),
@@ -398,6 +311,7 @@ Future<void> _showToggleStatusConfirmation(
 class _TopActionsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    Salesprovider salesprovider = context.read<Salesprovider>();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 8),
       child: Row(
@@ -405,9 +319,203 @@ class _TopActionsBar extends StatelessWidget {
         children: [
          Text(""),
           _GradientActionButton(icon: Icons.add, text: "Add Doctor", onTap: (){
-            context.router.push(RegisterNewHospitalRoute());
+            context.router.push(RegisterNewDoctorRoute(allhospitals:salesprovider.allhospitalnames));
           }),
         ],
+      ),
+    );
+  }
+}
+
+class PriceHistoryModal extends StatelessWidget {
+  final List<dynamic> priceHistory;
+
+  const PriceHistoryModal({super.key, required this.priceHistory});
+
+  String _formatDate(String isoDate) {
+    try {
+      final dateTime = DateTime.parse(isoDate).toLocal();
+      final twoDigits = (int n) => n.toString().padLeft(2, '0');
+      return '${dateTime.year}-${twoDigits(dateTime.month)}-${twoDigits(dateTime.day)}';
+    } catch (e) {
+      return isoDate;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Sort latest first (optional, based on screenshot order)
+    final sortedHistory = List<dynamic>.from(priceHistory)
+      ..sort((a, b) => DateTime.parse(b['effectiveFrom'])
+          .compareTo(DateTime.parse(a['effectiveFrom'])));
+
+    return Dialog(
+      insetPadding: const EdgeInsets.all(16),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 24, 16, 24),
+              decoration: BoxDecoration(
+                color: AppColors.badgeBg,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.currency_rupee_rounded,
+                      color: AppColors.primary,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Price History",
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          "Doctor consultation pricing timeline",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.black87),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+
+            // Table
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: sortedHistory.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Text(
+                        "No price history available",
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFF0DEDE)),
+                      ),
+                      child: Column(
+                        children: [
+                          // Table header
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 16),
+                            decoration: BoxDecoration(
+                              color: AppColors.badgeBg,
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(16)),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "PRICE",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      letterSpacing: 0.8,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "EFFECTIVE FROM",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      letterSpacing: 0.8,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Rows
+                          ...List.generate(sortedHistory.length, (index) {
+                            final item = sortedHistory[index];
+                            final isLast = index == sortedHistory.length - 1;
+
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 18),
+                              decoration: BoxDecoration(
+                                border: isLast
+                                    ? null
+                                    : const Border(
+                                        bottom: BorderSide(
+                                            color: Color(0xFFF0DEDE)),
+                                      ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      "${item['price']}",
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      _formatDate(item['effectiveFrom']),
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -461,26 +569,26 @@ class _GradientActionButton extends StatelessWidget {
 }
 
 
-class HospitalCard extends StatelessWidget {
-  final String hospitalname;
-  final String hospitalId;
+class DoctorCard extends StatelessWidget {
+  final String name;
+  final String id;
   final VoidCallback onView;
   final VoidCallback onEdit;
   final VoidCallback onToggleActive;
-  final VoidCallback onUpload;
-  final VoidCallback onDelete;
+  final VoidCallback onPriceTap;
+  
   final bool isactive;
-  final String phone;
-  final String logoUrl;
+  final int phone;
+  final String validtill;
+  final String createdat;
  
-  const HospitalCard({
+  const DoctorCard({
     super.key,
   
     required this.onView,
     required this.onEdit,
     required this.onToggleActive,
-    required this.onUpload,
-    required this.onDelete, required this.hospitalname, required this.hospitalId, required this.isactive, required this.phone, required this.logoUrl,
+   required this.isactive, required this.phone, required this.name, required this.id, required this.onPriceTap, required this.validtill, required this.createdat,
   });
  
   static const Color primaryRed = AppColors.primary;
@@ -489,6 +597,19 @@ class HospitalCard extends StatelessWidget {
   static const Color activeGreenBg = Color(0xFFD9F2E3);
   static const Color activeGreenText = Color(0xFF1E9E5A);
  
+String formatDate(String isoDate) {
+  final dateTime = DateTime.parse(isoDate).toLocal();
+
+  int hour = dateTime.hour % 12;
+  hour = hour == 0 ? 12 : hour;
+  String period = dateTime.hour >= 12 ? 'PM' : 'AM';
+
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+
+  return '${dateTime.month}/${dateTime.day}/${dateTime.year}, '
+      '$hour:${twoDigits(dateTime.minute)}:${twoDigits(dateTime.second)} $period';
+}
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -525,7 +646,7 @@ class HospitalCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              hospitalname,
+                              name,
                               style: const TextStyle(
                                 fontFamily: 'Georgia', // swap for a serif font of your choice
                                 fontWeight: FontWeight.bold,
@@ -535,7 +656,7 @@ class HospitalCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'ID: ${hospitalId}',
+                              'ID: ${id}',
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 14,
@@ -552,40 +673,13 @@ class HospitalCard extends StatelessWidget {
                   const SizedBox(height: 16),
        
                   // Phone row
-                  _InfoRow(label: 'PHONE', value: phone),
+                  _InfoRow(label: 'PHONE', value: phone.toString()),
                   const SizedBox(height: 14),
        
                   // Logo row
-                  _InfoRow(
-                    label: 'LOGO',
-                    value: '',
-                    trailing: logoUrl != ''
-                        ? Container(
-                            width: 56,
-                            height: 56,
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Image.network(
-                              logoUrl,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) =>
-                                  const Icon(Icons.local_hospital, color: primaryRed),
-                            ),
-                          )
-                        : Container(
-                            width: 56,
-                            height: 56,
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(FontAwesomeIcons.hospital ),
-                          ),
-                  ),
+                  _InfoRow(label: 'Valid Till', value: formatDate(validtill)),
+                  const SizedBox(height: 14),
+                  _InfoRow(label: 'Created', value: formatDate(createdat)),
        
                   const SizedBox(height: 16),
                   const Divider(height: 1, color: Color(0xFFEFEFEF)),
@@ -606,6 +700,13 @@ class HospitalCard extends StatelessWidget {
                         background: lightPink,
                         iconColor: primaryRed,
                         onTap: onEdit,
+                      ),
+                      const SizedBox(width: 10),
+                       _RoundIconButton(
+                        icon: Icons.monetization_on_outlined,
+                        background: lightPink,
+                        iconColor: primaryRed,
+                        onTap: onPriceTap,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -636,21 +737,7 @@ class HospitalCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      _RoundIconButton(
-                        icon: Icons.file_upload_outlined,
-                        background: darkRed,
-                        iconColor: Colors.white,
-                        onTap: onUpload,
-                      ),
-                      const SizedBox(width: 10),
-                      if(logoUrl != '')
-                      _RoundIconButton(
-                        icon: Icons.delete_outline,
-                        background: primaryRed,
-                        iconColor: Colors.white,
-                        onTap: onDelete,
-                      ),
+                     
                     ],
                   ),
                 ],
@@ -673,14 +760,14 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         color: isActive
-            ? HospitalCard.activeGreenBg
+            ? DoctorCard.activeGreenBg
             : Colors.grey.shade200,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         isActive ? 'ACTIVE' : 'DISABLED',
         style: TextStyle(
-          color: isActive ? HospitalCard.activeGreenText : Colors.grey.shade600,
+          color: isActive ? DoctorCard.activeGreenText : Colors.grey.shade600,
           fontWeight: FontWeight.bold,
           fontSize: 12,
           letterSpacing: 0.5,
@@ -767,21 +854,22 @@ String formatCreatedAt(String createdAt) {
   return DateFormat("EEEE, MMMM d, yyyy 'at' h:mm a").format(dateTime);
 }
 
-class ViewHospitalModel extends StatelessWidget {
+class ViewDoctorModel extends StatelessWidget {
   final String name;
-  final String adminId;
   final String email;
-  final String phonenumber;
+  final String gender;
+  final int phonenumber;
+  final int phone2;
+final String qualification;
   final String createdat;
-  final String address;
+  final String specialization;
+  final String registrationnumber;
+  final String registrationdetails;
+  final List<dynamic> associatedhospital;
 
-  const ViewHospitalModel({
-    super.key,
-    required this.name,
-    required this.adminId,
-    required this.email,
-    required this.phonenumber,
-    required this.createdat, required this.address,
+  const ViewDoctorModel({
+    super.key, required this.name, required this.email, required this.gender, required this.phonenumber, required this.phone2, required this.qualification, required this.createdat, required this.specialization, required this.registrationnumber, required this.registrationdetails, required this.associatedhospital,
+    
   });
 
   @override
@@ -819,7 +907,7 @@ class ViewHospitalModel extends StatelessWidget {
                       const SizedBox(width: 10),
                       const Expanded(
                         child: Text(
-                          "Hospital Details",
+                          "Doctor Details",
                           style:
                               TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                         ),
@@ -840,6 +928,21 @@ class ViewHospitalModel extends StatelessWidget {
                     value: name,
                   ),
             
+                  const SizedBox(height: 12),
+                  _infoTile(
+                    icon: Icons.person,
+                    label: "Gender",
+                    value: gender,
+                    iconBg: Colors.grey.shade100,
+                    iconColor: Colors.red,
+                  ),
+
+                  const SizedBox(height: 12),
+                  Text("Contact Information",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),),
                   const SizedBox(height: 12),
             
                   /// EMAIL
@@ -862,15 +965,85 @@ class ViewHospitalModel extends StatelessWidget {
                     iconColor: Colors.green,
                   ),
 
-                  const SizedBox(height: 12),
+                   if(phone2 != 0)
+                   const SizedBox(height: 12),
 
-                   _infoTile(
-                    icon: Icons.book_outlined,
-                    label: "Address",
-                    value: address,
+                  if(phone2 != 0)
+                  _infoTile(
+                    icon: Icons.phone,
+                    label: "Alternative Phone Number",
+                    value: phone2.toString(),
                     iconBg: Colors.green.shade50,
                     iconColor: Colors.green,
                   ),
+
+                  const SizedBox(height: 12),
+
+                  
+
+
+                   _infoTile(
+                    icon: FontAwesomeIcons.stethoscope,
+                    label: "Qualification",
+                    value: qualification,
+                    iconBg: Colors.grey.shade100,
+                    iconColor: AppColors.primary,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  
+
+
+                   _infoTile(
+                    icon: FontAwesomeIcons.stethoscope,
+                    label: "Specialization",
+                    value: specialization,
+                    iconBg: Colors.grey.shade100,
+                    iconColor: AppColors.primary,
+                  ),
+            
+            const SizedBox(height: 12),
+
+                  
+
+
+                   _infoTile(
+                    icon: FontAwesomeIcons.stethoscope,
+                    label: "Registration Number",
+                    value: registrationnumber,
+                    iconBg: Colors.grey.shade100,
+                    iconColor: AppColors.primary,
+                  ),
+            
+
+            const SizedBox(height: 12),
+
+                  
+
+
+                   _infoTile(
+                    icon: FontAwesomeIcons.stethoscope,
+                    label: "Registration Details",
+                    value: registrationdetails,
+                    iconBg: Colors.grey.shade100,
+                    iconColor: AppColors.primary,
+                  ),
+            
+
+            const SizedBox(height: 12),
+
+                  
+_associatedHospitalsTile(),
+
+                  //  _infoTile(
+                  //   icon: Icons.book_outlined,
+                  //   label: "Associated Hospitals",
+                  //   value: associatedhospital,
+                  //   iconBg: Colors.green.shade50,
+                  //   iconColor: Colors.green,
+                  // ),
+            
             
             
                   const SizedBox(height: 16),
@@ -891,6 +1064,87 @@ class ViewHospitalModel extends StatelessWidget {
       ),
     );
   }
+
+  Widget _associatedHospitalsTile() {
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: Colors.grey.shade300),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.local_hospital_outlined, color: Colors.green),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              "Associated Hospitals",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (associatedhospital.isEmpty)
+          const Text(
+            "No hospitals associated",
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: associatedhospital.map((hospital) {
+              final String hospitalName = hospital['name'] ?? 'Unknown';
+              final bool isActive = hospital['isActive'] ?? false;
+
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.green.shade50 : Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isActive ? Colors.green.shade200 : Colors.grey.shade400,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.circle,
+                      size: 8,
+                      color: isActive ? Colors.green : Colors.grey,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      hospitalName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+      ],
+    ),
+  );
+}
 
   /// Highlight Tile (Red)
   Widget _highlightTile({

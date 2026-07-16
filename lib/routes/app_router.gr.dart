@@ -32,6 +32,28 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const DashboardPage(),
       );
     },
+    EditAdminRoute.name: (routeData) {
+      final args = routeData.argsAs<EditAdminRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: EditAdminPage(
+          key: args.key,
+          adminData: args.adminData,
+          alldoctors: args.alldoctors,
+        ),
+      );
+    },
+    EditDoctorRoute.name: (routeData) {
+      final args = routeData.argsAs<EditDoctorRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: EditDoctorPage(
+          key: args.key,
+          doctorData: args.doctorData,
+          allhospitals: args.allhospitals,
+        ),
+      );
+    },
     EditHospitalRoute.name: (routeData) {
       final args = routeData.argsAs<EditHospitalRouteArgs>();
       return AutoRoutePage<dynamic>(
@@ -47,22 +69,52 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
+    EditLabTechnicianRoute.name: (routeData) {
+      final args = routeData.argsAs<EditLabTechnicianRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: EditLabTechnicianPage(
+          key: args.key,
+          technicianData: args.technicianData,
+        ),
+      );
+    },
     LoginRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
         child: const LoginPage(),
       );
     },
-    RegisterNewDoctorRoute.name: (routeData) {
+    RegisterNewAdminRoute.name: (routeData) {
+      final args = routeData.argsAs<RegisterNewAdminRouteArgs>();
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const RegisterNewDoctorPage(),
+        child: RegisterNewAdminPage(
+          key: args.key,
+          alldoctors: args.alldoctors,
+        ),
+      );
+    },
+    RegisterNewDoctorRoute.name: (routeData) {
+      final args = routeData.argsAs<RegisterNewDoctorRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: RegisterNewDoctorPage(
+          key: args.key,
+          allhospitals: args.allhospitals,
+        ),
       );
     },
     RegisterNewHospitalRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
         child: const RegisterNewHospitalPage(),
+      );
+    },
+    RegisterNewLabtechnicianRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const RegisterNewLabtechnicianPage(),
       );
     },
     SplashRoute.name: (routeData) {
@@ -132,6 +184,92 @@ class DashboardRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [EditAdminPage]
+class EditAdminRoute extends PageRouteInfo<EditAdminRouteArgs> {
+  EditAdminRoute({
+    Key? key,
+    required Map<String, dynamic> adminData,
+    required List<Map<String, dynamic>> alldoctors,
+    List<PageRouteInfo>? children,
+  }) : super(
+          EditAdminRoute.name,
+          args: EditAdminRouteArgs(
+            key: key,
+            adminData: adminData,
+            alldoctors: alldoctors,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'EditAdminRoute';
+
+  static const PageInfo<EditAdminRouteArgs> page =
+      PageInfo<EditAdminRouteArgs>(name);
+}
+
+class EditAdminRouteArgs {
+  const EditAdminRouteArgs({
+    this.key,
+    required this.adminData,
+    required this.alldoctors,
+  });
+
+  final Key? key;
+
+  final Map<String, dynamic> adminData;
+
+  final List<Map<String, dynamic>> alldoctors;
+
+  @override
+  String toString() {
+    return 'EditAdminRouteArgs{key: $key, adminData: $adminData, alldoctors: $alldoctors}';
+  }
+}
+
+/// generated route for
+/// [EditDoctorPage]
+class EditDoctorRoute extends PageRouteInfo<EditDoctorRouteArgs> {
+  EditDoctorRoute({
+    Key? key,
+    required Map<String, dynamic> doctorData,
+    required List<Map<String, dynamic>> allhospitals,
+    List<PageRouteInfo>? children,
+  }) : super(
+          EditDoctorRoute.name,
+          args: EditDoctorRouteArgs(
+            key: key,
+            doctorData: doctorData,
+            allhospitals: allhospitals,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'EditDoctorRoute';
+
+  static const PageInfo<EditDoctorRouteArgs> page =
+      PageInfo<EditDoctorRouteArgs>(name);
+}
+
+class EditDoctorRouteArgs {
+  const EditDoctorRouteArgs({
+    this.key,
+    required this.doctorData,
+    required this.allhospitals,
+  });
+
+  final Key? key;
+
+  final Map<String, dynamic> doctorData;
+
+  final List<Map<String, dynamic>> allhospitals;
+
+  @override
+  String toString() {
+    return 'EditDoctorRouteArgs{key: $key, doctorData: $doctorData, allhospitals: $allhospitals}';
+  }
+}
+
+/// generated route for
 /// [EditHospitalPage]
 class EditHospitalRoute extends PageRouteInfo<EditHospitalRouteArgs> {
   EditHospitalRoute({
@@ -195,6 +333,44 @@ class EditHospitalRouteArgs {
 }
 
 /// generated route for
+/// [EditLabTechnicianPage]
+class EditLabTechnicianRoute extends PageRouteInfo<EditLabTechnicianRouteArgs> {
+  EditLabTechnicianRoute({
+    Key? key,
+    required Map<String, dynamic> technicianData,
+    List<PageRouteInfo>? children,
+  }) : super(
+          EditLabTechnicianRoute.name,
+          args: EditLabTechnicianRouteArgs(
+            key: key,
+            technicianData: technicianData,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'EditLabTechnicianRoute';
+
+  static const PageInfo<EditLabTechnicianRouteArgs> page =
+      PageInfo<EditLabTechnicianRouteArgs>(name);
+}
+
+class EditLabTechnicianRouteArgs {
+  const EditLabTechnicianRouteArgs({
+    this.key,
+    required this.technicianData,
+  });
+
+  final Key? key;
+
+  final Map<String, dynamic> technicianData;
+
+  @override
+  String toString() {
+    return 'EditLabTechnicianRouteArgs{key: $key, technicianData: $technicianData}';
+  }
+}
+
+/// generated route for
 /// [LoginPage]
 class LoginRoute extends PageRouteInfo<void> {
   const LoginRoute({List<PageRouteInfo>? children})
@@ -209,17 +385,79 @@ class LoginRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [RegisterNewAdminPage]
+class RegisterNewAdminRoute extends PageRouteInfo<RegisterNewAdminRouteArgs> {
+  RegisterNewAdminRoute({
+    Key? key,
+    required List<Map<String, dynamic>> alldoctors,
+    List<PageRouteInfo>? children,
+  }) : super(
+          RegisterNewAdminRoute.name,
+          args: RegisterNewAdminRouteArgs(
+            key: key,
+            alldoctors: alldoctors,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'RegisterNewAdminRoute';
+
+  static const PageInfo<RegisterNewAdminRouteArgs> page =
+      PageInfo<RegisterNewAdminRouteArgs>(name);
+}
+
+class RegisterNewAdminRouteArgs {
+  const RegisterNewAdminRouteArgs({
+    this.key,
+    required this.alldoctors,
+  });
+
+  final Key? key;
+
+  final List<Map<String, dynamic>> alldoctors;
+
+  @override
+  String toString() {
+    return 'RegisterNewAdminRouteArgs{key: $key, alldoctors: $alldoctors}';
+  }
+}
+
+/// generated route for
 /// [RegisterNewDoctorPage]
-class RegisterNewDoctorRoute extends PageRouteInfo<void> {
-  const RegisterNewDoctorRoute({List<PageRouteInfo>? children})
-      : super(
+class RegisterNewDoctorRoute extends PageRouteInfo<RegisterNewDoctorRouteArgs> {
+  RegisterNewDoctorRoute({
+    Key? key,
+    required List<Map<String, dynamic>> allhospitals,
+    List<PageRouteInfo>? children,
+  }) : super(
           RegisterNewDoctorRoute.name,
+          args: RegisterNewDoctorRouteArgs(
+            key: key,
+            allhospitals: allhospitals,
+          ),
           initialChildren: children,
         );
 
   static const String name = 'RegisterNewDoctorRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static const PageInfo<RegisterNewDoctorRouteArgs> page =
+      PageInfo<RegisterNewDoctorRouteArgs>(name);
+}
+
+class RegisterNewDoctorRouteArgs {
+  const RegisterNewDoctorRouteArgs({
+    this.key,
+    required this.allhospitals,
+  });
+
+  final Key? key;
+
+  final List<Map<String, dynamic>> allhospitals;
+
+  @override
+  String toString() {
+    return 'RegisterNewDoctorRouteArgs{key: $key, allhospitals: $allhospitals}';
+  }
 }
 
 /// generated route for
@@ -232,6 +470,20 @@ class RegisterNewHospitalRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'RegisterNewHospitalRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [RegisterNewLabtechnicianPage]
+class RegisterNewLabtechnicianRoute extends PageRouteInfo<void> {
+  const RegisterNewLabtechnicianRoute({List<PageRouteInfo>? children})
+      : super(
+          RegisterNewLabtechnicianRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'RegisterNewLabtechnicianRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }

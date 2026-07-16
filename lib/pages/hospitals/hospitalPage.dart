@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
 import 'package:sales_mobile_app/routes/app_router.dart';
+import 'package:sales_mobile_app/services/constants.dart';
+import 'package:sales_mobile_app/services/secureStorage.dart';
 import 'package:sales_mobile_app/theme/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:io';
@@ -21,6 +23,7 @@ class _HospitalPageState extends State<HospitalPage> {
     final TextEditingController _searchController = TextEditingController();
   late Future fetchhospitals;
   String _searchQuery = ''; 
+  final SecureStorage secureStorage = SecureStorage();
 
 
 @override
@@ -66,7 +69,7 @@ class _HospitalPageState extends State<HospitalPage> {
         children: [
           _TopActionsBar(),
           _buildSearchBar(),
-          _buildMainContent(salesprovider),
+          Expanded(child: _buildMainContent(salesprovider)),
           
         ],
       );
@@ -107,8 +110,20 @@ class _HospitalPageState extends State<HospitalPage> {
   );
 }
 
+Future<void> _handleRefresh() async {
+    Salesprovider salesprovider = context.read<Salesprovider>();
+
+    await Future.delayed(Duration(seconds: 2));
+    
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    setState(() {
+      fetchhospitals = salesprovider.getallhospitals(context);
+    });
+  }
+
   Widget _buildMainContent(Salesprovider provider){
-    return Expanded(
+    return RefreshIndicator(
+      onRefresh: () => _handleRefresh() ,
       child: FutureBuilder(future: fetchhospitals, 
       builder:(context, snapshot) 
       {
@@ -120,8 +135,8 @@ class _HospitalPageState extends State<HospitalPage> {
               }
       
               final filteredHospitals = _filterHospitals(provider.allhospitals);   // 👈 naya
-
-
+            
+            
                   if (filteredHospitals.isEmpty) {
                     return const Center(
                       child: Padding(
@@ -172,21 +187,21 @@ class _HospitalPageState extends State<HospitalPage> {
       
                          },
             onToggleActive: () {
-  _showToggleStatusConfirmation(
-    context,
-    item['userid'],
-    item['isActive'] ?? false,
-    item['name'] ?? 'this hospital',
-  );
-},
+      _showToggleStatusConfirmation(
+            context,
+            item['userid'],
+            item['isActive'] ?? false,
+            item['name'] ?? 'this hospital',
+      );
+            },
             onUpload: provider.uploadinglogo 
         ? (){} 
         : () async {
         await _pickAndUploadLogo(context, item['userid']);
       }, 
       onDelete: () {
-  _showDeleteConfirmation(context, item['userid'], item['name'] ?? 'this hospital');
-},
+      _showDeleteConfirmation(context, item['userid'], item['name'] ?? 'this hospital');
+            },
       
        hospitalname: item['name'], hospitalId: item['userid'], isactive: item['isActive'], phone: item['phone'], logoUrl: item['logo']??'');
           },),
