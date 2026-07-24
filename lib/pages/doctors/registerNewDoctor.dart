@@ -34,7 +34,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
   final formkey = GlobalKey<FormState>();
     bool _obscureText = true;
   List<Map<String, dynamic>> selectedHospitals = [];
-
+bool _autoValidate = false;
 
 
  final List<String> _genderOptions = [
@@ -48,7 +48,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
   @override
   Widget build(BuildContext context) {
     Salesprovider salesprovider =
-        context.read<Salesprovider>();
+        context.watch<Salesprovider>();
     return Scaffold(
       backgroundColor: AppColors.badgeBg,
         appBar: AppBar(
@@ -74,6 +74,9 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
           padding: EdgeInsets.all(16),
           child: Form(
               key: formkey,
+               autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled, 
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -88,7 +91,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: _nameController,
                     inputFormatters: [
                       // LengthLimitingTextInputFormatter(50),
@@ -98,7 +101,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter hospitalname';
+                        return 'Please enter name';
                       }
                       return null; // Return null if validation is successful
                     },
@@ -117,16 +120,16 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: InputDecoration(
-                      hintText: 'Select gender of the patient',
+                      hintText: 'Please Select gender',
                       border: OutlineInputBorder(),
                       contentPadding:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 15),
                     ),
                     value: _selectedGender,
                     validator: (value) => value == null
-                        ? 'Please select gender of the patient'
+                        ? 'Please select gender'
                         : null,
                     onChanged: (newValue) {
                       setState(() {
@@ -188,7 +191,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _phoneController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     inputFormatters: <TextInputFormatter>[
                       LengthLimitingTextInputFormatter(10),
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -218,7 +221,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _alternativephoneController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     inputFormatters: <TextInputFormatter>[
                       LengthLimitingTextInputFormatter(10),
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -261,10 +264,8 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                               cursorColor: const Color(0Xff2556B9),
                              
                               validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Please enter password';
-                                }
-
+                               if (value == null || value.isEmpty) return "Please enter password";
+        if (value.length < 5) return "Minimum 5 characters required"; // ✅ min check
                                 return null; // Return null if validation is successful
                               },
                               decoration: InputDecoration(
@@ -396,7 +397,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _qualificationController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                    
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -421,7 +422,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _specializationController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                    
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -446,7 +447,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _registrationnumberController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                    
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -471,7 +472,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _yearofregistrationController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     inputFormatters: <TextInputFormatter>[
                       
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -500,7 +501,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _boardofregistrationController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                    
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -525,7 +526,7 @@ class _RegisterNewDoctorPageState extends State<RegisterNewDoctorPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _priceperdiagnosisController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
 keyboardType: TextInputType.number,
                    inputFormatters: <TextInputFormatter>[
                       
@@ -552,12 +553,12 @@ DropdownSearch<Map<String, dynamic>>.multiSelection(
   itemAsString: (doc) => "${doc['name']} | ${doc['userid']}",
   compareFn: (item1, item2) => item1['userid'] == item2['userid'],  // 👈 ye add karo
   selectedItems: selectedHospitals,
-  autoValidateMode: AutovalidateMode.onUserInteraction,
+  // autoValidateMode: AutovalidateMode.onUserInteraction,
   popupProps: PopupPropsMultiSelection.menu(
     showSearchBox: true,
     showSelectedItems: true,
     constraints: BoxConstraints(
-      maxHeight: 200,
+      maxHeight: 300,
     ),
     menuProps: MenuProps(
       borderRadius: BorderRadius.circular(12),
@@ -612,7 +613,11 @@ DropdownSearch<Map<String, dynamic>>.multiSelection(
                         ),
                       ),
                       onPressed: salesprovider.addingdoctor? null: () async {
+                         setState(() {
+    _autoValidate = true;  
+  });
                         if (formkey.currentState!.validate()) {
+                          
                           setState(() {
                             salesprovider.addingdoctor = true;
                           });

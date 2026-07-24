@@ -32,6 +32,8 @@ class _EditLabTechnicianPageState extends State<EditLabTechnicianPage> {
  
 
   String? adminid;
+    bool _autoValidate = false;
+
 
 
   @override
@@ -59,7 +61,7 @@ class _EditLabTechnicianPageState extends State<EditLabTechnicianPage> {
 
   @override
   Widget build(BuildContext context) {
-    Salesprovider salesprovider = context.read<Salesprovider>();
+    Salesprovider salesprovider = context.watch<Salesprovider>();
     return Scaffold(
       backgroundColor: AppColors.badgeBg,
       appBar: AppBar(
@@ -85,6 +87,9 @@ class _EditLabTechnicianPageState extends State<EditLabTechnicianPage> {
         padding: EdgeInsets.all(16),
         child: Form(
           key: formkey,
+          autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -138,7 +143,6 @@ SizedBox(height: 16,),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: _nameController,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 ]')),
@@ -189,7 +193,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _phoneController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 inputFormatters: <TextInputFormatter>[
                   LengthLimitingTextInputFormatter(10),
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -214,7 +217,6 @@ SizedBox(height: 16,),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: _addressController,
                
                 validator: (value) {
@@ -252,8 +254,13 @@ SizedBox(height: 16,),
                   onPressed: salesprovider.updatingLabtechnician
                       ? null
                       : () async {
+                         setState(() {
+    _autoValidate = true;  
+  });
                           if (formkey.currentState!.validate()) {
-                          
+                           setState(() {
+                                  salesprovider.updatingLabtechnician = true;
+                                });
 
                             await salesprovider.editLabtechnician(
                               adminId: widget.technicianData['userid'],
@@ -411,6 +418,7 @@ class _ResetPasswordModelState extends State<ResetPasswordModel> {
                             text: "Submit",
                             onTap: () async {
                               if (formKey.currentState!.validate()) {
+                                
                                 setState(() => _isLoading = true); // ✅ block further taps
                                 try {
                                  

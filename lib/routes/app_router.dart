@@ -58,6 +58,8 @@ class AppRouter extends _$AppRouter {
          AutoRoute(
           page: EditLabTechnicianRoute.page,
         ),
-        
+        AutoRoute(
+          page: AuthenticationRoute.page,
+        ),
       ];
 }

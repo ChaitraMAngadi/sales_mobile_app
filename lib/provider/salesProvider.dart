@@ -22,6 +22,7 @@ class Salesprovider extends ChangeNotifier {
 
 List<Map<String, dynamic>> allhospitals = [];
 List<Map<String, dynamic>> allhospitalnames = [];
+
 Map<String, dynamic> allprofiles = {};   
 //  List<Map<String, dynamic>> allprofiles = [];
 bool addinghospital = false;
@@ -103,7 +104,7 @@ Future<void> getallhospitalsname(BuildContext context) async {
         print(responseData);
 
         allhospitalnames = List<Map<String, dynamic>>.from(responseData["data"]);
-        print(allhospitalnames);
+        print("hospital names $allhospitalnames");
 
         notifyListeners();
       } else if (response.statusCode == 401) {
@@ -226,6 +227,7 @@ Future<void> getallhospitalsname(BuildContext context) async {
         ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
         getallhospitals(context);
         Navigator.pop(context);
+        notifyListeners();
       } else {
         print(response.body);
         addinghospital = false;
@@ -237,12 +239,16 @@ Future<void> getallhospitalsname(BuildContext context) async {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ));
         ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        addinghospital = false;
+        print(addinghospital);
         notifyListeners();
       }
     } catch (e) {
       addinghospital = false;
       final error = SnackBar(content: Text(e.toString()));
       ScaffoldMessenger.of(context).showSnackBar(error);
+      addinghospital = false;
+        print(addinghospital);
       notifyListeners();
     }
       }
@@ -257,12 +263,16 @@ Future<void> getallhospitalsname(BuildContext context) async {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ));
         ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        addinghospital = false;
+        print(addinghospital);
         notifyListeners();
       }
     } catch (e) {
       addinghospital = false;
       final error = SnackBar(content: Text(e.toString()));
       ScaffoldMessenger.of(context).showSnackBar(error);
+      addinghospital = false;
+        print(addinghospital);
       notifyListeners();
     }
   }
@@ -773,6 +783,7 @@ Future<void> getallprofiles(BuildContext context) async {
 ///
 
 List<Map<String, dynamic>> alldoctors = [];
+List<Map<String, dynamic>> alldoctorsnames = [];
 bool addingdoctor = false;
 bool togglingdoctorstatus = false;
 bool updatingdoctorprice = false;
@@ -838,6 +849,63 @@ Future<void> getalldoctors(BuildContext context) async {
 }
 
 
+Future<void> getalldoctorsname(BuildContext context) async {
+    String url = "${Constants.baseUrl}/api/v1/sales/getalldoctorsname";
+
+    Constants.token = await secureStorage.readSecureData('token') ?? '';
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${Constants.token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print(responseData);
+
+        alldoctorsnames = List<Map<String, dynamic>>.from(responseData["data"]);
+        print("doctors names $alldoctorsnames");
+
+        notifyListeners();
+      } else if (response.statusCode == 401) {
+        await refreshtoken(context);
+
+        Constants.token = await secureStorage.readSecureData('token') ?? '';
+
+        try {
+          final response = await http.get(
+            Uri.parse(url),
+            headers: <String, String>{
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${Constants.token}',
+            },
+          );
+
+          if (response.statusCode == 200) {
+            final responseData = jsonDecode(response.body);
+            print(responseData);
+
+            alldoctorsnames = List<Map<String, dynamic>>.from(responseData["data"]);
+            print(alldoctorsnames);
+
+            notifyListeners();
+          } else if (response.statusCode == 404) {
+            final responseData = jsonDecode(response.body);
+          }
+        } catch (e) {
+          print(e);
+        }
+      } else if (response.statusCode == 404) {
+        final responseData = jsonDecode(response.body);
+      }
+    } catch (e) {
+      print(e);
+    }
+}
+
 Future<void> addDoctor(
 String name, 
 String phone,
@@ -874,6 +942,10 @@ String gender,
         "price": priceperdiagnosis,
         "hospitalIds": associatedhospital,
       };
+
+       if(alternativephone.isNotEmpty){
+      requestBody['phone2'] = alternativephone;
+    }
       
 
       final response = await http.post(
@@ -926,6 +998,9 @@ String gender,
         "price": priceperdiagnosis,
         "hospitalIds": associatedhospital,
       };
+       if(alternativephone.isNotEmpty){
+      requestBody['phone2'] = alternativephone;
+    }
     
 
       final response = await http.post(
@@ -1166,7 +1241,6 @@ Future<void> editDoctor({
   required String registrationnumber,
   required String yearofregistration,
   required String boardofregistration,
-  required String priceperdiagnosis,
   required List<String> associatedhospital,
   required BuildContext context,
 }) async {
@@ -1187,7 +1261,6 @@ Future<void> editDoctor({
       "doctorRegistrationNumber": registrationnumber,
       "year_of_registration": yearofregistration,
       "board_of_registration": boardofregistration,
-      "price": priceperdiagnosis,
       "hospitalIds": associatedhospital,
     };
 
@@ -1249,6 +1322,7 @@ Future<void> editDoctor({
         );
         ScaffoldMessenger.of(context).showSnackBar(successSnackbar);
         await getalldoctors(context);
+        updatingdoctor = false;
         Navigator.pop(context);
       } else {
         final responseData = jsonDecode(retryResponse.body);
@@ -1260,6 +1334,7 @@ Future<void> editDoctor({
           ),
         );
         ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        updatingdoctor = false;
         notifyListeners();
       }
     } else {
@@ -1273,6 +1348,7 @@ Future<void> editDoctor({
         ),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackbar);
+      updatingdoctor = false;
       notifyListeners();
     }
   } catch (e) {
@@ -1356,8 +1432,7 @@ Future<void> changedoctorpassword(String newPassword, String confirmPassword,
   required BuildContext context,
 }) async {
   try {
-    updatingdoctor = true;
-    notifyListeners();
+   
 final headers = await DeviceHeaders.getDeviceHeaders();
     final response = await http.patch(
       Uri.parse('${Constants.baseUrl}/api/v1/sales/changedoctorvalidity/$doctorId'),
@@ -1378,13 +1453,13 @@ final headers = await DeviceHeaders.getDeviceHeaders();
             ));
 
         ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
+        getalldoctors(context);
          notifyListeners();
     } else if(response.statusCode == 401){
     await  refreshtoken(context);
 
       try {
-    updatingdoctor = true;
-    notifyListeners();
+  
 final headers = await DeviceHeaders.getDeviceHeaders();
     final response = await http.patch(
       Uri.parse('${Constants.baseUrl}/api/v1/sales/changedoctorvalidity/$doctorId'),
@@ -1408,7 +1483,6 @@ final headers = await DeviceHeaders.getDeviceHeaders();
        getalldoctors(context);
          notifyListeners();
     } else {
-      updatingdoctor = false;
         final responseData = jsonDecode(response.body);
         final snackbar = SnackBar(
             backgroundColor: Colors.red[400],
@@ -1423,12 +1497,12 @@ final headers = await DeviceHeaders.getDeviceHeaders();
     print(e);
     // error handling
   } finally {
-    updatingdoctor = false;
+   
     notifyListeners();
   }
     }
     else {
-      updatingdoctor = false;
+     
         final responseData = jsonDecode(response.body);
         final snackbar = SnackBar(
             backgroundColor: Colors.red[400],
@@ -1443,7 +1517,7 @@ final headers = await DeviceHeaders.getDeviceHeaders();
     print(e);
     // error handling
   } finally {
-    updatingdoctor = false;
+  
     notifyListeners();
   }
 }
@@ -2500,15 +2574,20 @@ Future<void> changelabtechnicianpassword(String newPassword, String confirmPassw
   Future<void> refreshtoken(BuildContext context) async {
     try {
       Constants.refreshtoken = await secureStorage.readSecureData('refreshtoken') ?? '';
+            Constants.token = await secureStorage.readSecureData('token') ?? '';
+
+      notifyListeners();
 
       final response = await http.post(
         Uri.parse('${Constants.baseUrl}/api/v1/sales/refreshtokensalesphone'),
         headers: <String, String>{
-          'Authorization': 'Bearer ${Constants.refreshtoken}',
+          'Authorization': 'Bearer ${Constants.token}',
           'Content-Type': 'application/json',
           // ...headers,
         },
       );
+
+      print(response.body);
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -2518,6 +2597,7 @@ Future<void> changelabtechnicianpassword(String newPassword, String confirmPassw
         Constants.refreshtoken = responseData['refreshToken'];
         print("Constants.doctortoken ${Constants.token}");
         print("Constants.doctorrefreshtoken ${Constants.refreshtoken}");
+        notifyListeners();
 
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         // Only logout on auth errors
@@ -2536,5 +2616,9 @@ Future<void> changelabtechnicianpassword(String newPassword, String confirmPassw
     } catch (e) {
       final error = SnackBar(content: Text(e.toString()));
     }
+  }
+
+   void notify() {
+    notifyListeners();
   }
 }

@@ -28,13 +28,14 @@ class _RegisterNewAdminPageState extends State<RegisterNewAdminPage> {
   final TextEditingController _confirmpasswordController = TextEditingController();
   final formkey = GlobalKey<FormState>();
   bool _obscureText = true;
+  bool _autoValidate = false;
   // Map<String, dynamic>? selectedConsultingDoctor;
 List<Map<String, dynamic>> selectedConsultingDoctor = [];
 
   @override
   Widget build(BuildContext context) {
     Salesprovider salesprovider =
-        context.read<Salesprovider>();
+        context.watch<Salesprovider>();
     return Scaffold(
       backgroundColor: AppColors.badgeBg,
         appBar: AppBar(
@@ -60,6 +61,9 @@ List<Map<String, dynamic>> selectedConsultingDoctor = [];
           padding: EdgeInsets.all(16),
           child: Form(
               key: formkey,
+              autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -68,7 +72,7 @@ List<Map<String, dynamic>> selectedConsultingDoctor = [];
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: _nameController,
                     inputFormatters: [
                       // LengthLimitingTextInputFormatter(50),
@@ -78,7 +82,7 @@ List<Map<String, dynamic>> selectedConsultingDoctor = [];
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter hospitalname';
+                        return 'Please enter name';
                       }
                       return null; // Return null if validation is successful
                     },
@@ -134,7 +138,7 @@ List<Map<String, dynamic>> selectedConsultingDoctor = [];
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _phoneController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     inputFormatters: <TextInputFormatter>[
                       LengthLimitingTextInputFormatter(10),
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -170,11 +174,11 @@ List<Map<String, dynamic>> selectedConsultingDoctor = [];
                               cursorColor: const Color(0Xff2556B9),
                              
                               validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Please enter password';
-                                }
+                                if (value == null || value.isEmpty) return "Please enter password";
+        if (value.length < 5) return "Minimum 5 characters required"; // ✅ min check
+                                return null;
 
-                                return null; // Return null if validation is successful
+                               
                               },
                               decoration: InputDecoration(
                                   focusedBorder: const OutlineInputBorder(
@@ -342,12 +346,12 @@ List<Map<String, dynamic>> selectedConsultingDoctor = [];
   itemAsString: (doc) => "${doc['name']} | ${doc['userid']}",
   compareFn: (item1, item2) => item1['userid'] == item2['userid'],  // 👈 ye add karo
   selectedItems: selectedConsultingDoctor,
-  autoValidateMode: AutovalidateMode.onUserInteraction,
+  // autoValidateMode: AutovalidateMode.onUserInteraction,
   popupProps: PopupPropsMultiSelection.menu(
     showSearchBox: true,
     showSelectedItems: true,
     constraints: BoxConstraints(
-      maxHeight: 200,
+      maxHeight: 300,
     ),
     menuProps: MenuProps(
       borderRadius: BorderRadius.circular(12),
@@ -401,7 +405,11 @@ List<Map<String, dynamic>> selectedConsultingDoctor = [];
                         ),
                       ),
                       onPressed: salesprovider.addingadmin? null: () async {
+                        setState(() {
+    _autoValidate = true;   // 👈 ab se onUserInteraction mode ON ho jayega
+  });
                         if (formkey.currentState!.validate()) {
+                           
                           setState(() {
                             salesprovider.addingadmin = true;
                           });

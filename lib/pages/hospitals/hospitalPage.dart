@@ -1,8 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:sales_mobile_app/pages/doctors/uploadLogoFile.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
 import 'package:sales_mobile_app/routes/app_router.dart';
 import 'package:sales_mobile_app/services/constants.dart';
@@ -265,156 +269,410 @@ Widget _buildSearchBar() {
   );
 }
 
+// Future<void> _pickAndUploadLogo(BuildContext context, String hospitalId) async {
+//   final salesprovider = context.read<Salesprovider>();
+//   final ImagePicker picker = ImagePicker();
+
+//   final XFile? pickedFile = await picker.pickImage(
+//     source: ImageSource.gallery,   // sirf gallery se, camera nahi
+//     imageQuality: 85,
+//   );
+
+//   if (pickedFile == null) {
+//     return; // user cancelled
+//   }
+
+//   File file = File(pickedFile.path);
+//   final fileSizeInBytes = await file.length();
+//   const maxSizeInBytes = 500 * 1024; // 500 KB
+
+//   if (fileSizeInBytes > maxSizeInBytes) {
+//     if (context.mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(
+//           backgroundColor: Colors.red,
+//           content: Text('File size must be 500KB or less'),
+//         ),
+//       );
+//     }
+//     return;
+//   }
+
+//   await salesprovider.uploadHospitalLogo(hospitalId, file, context);
+// }
+
+// Future<void> _pickAndUploadLogo(BuildContext context, String hospitalId) async {
+//   final salesprovider = context.read<Salesprovider>();
+//   final ImagePicker picker = ImagePicker();
+
+//   final XFile? pickedFile = await picker.pickImage(
+//     source: ImageSource.gallery,
+//     imageQuality: 85,
+//   );
+
+//   if (pickedFile == null) {
+//     return; // user cancelled
+//   }
+
+//   final Uint8List originalBytes = await pickedFile.readAsBytes();
+
+//   if (!context.mounted) return;
+
+//   // Crop dialog dikhaye jaise screenshot mein hai
+//   final Uint8List? croppedBytes = await showDialog<Uint8List>(
+//     context: context,
+//     barrierDismissible: false,
+//     builder: (_) => UploadLogoDialog(imageBytes: originalBytes),
+//   );
+
+//   if (croppedBytes == null) {
+//     return; // user ne cancel/close kiya
+//   }
+
+//   const maxSizeInBytes = 500 * 1024; // 500 KB
+//   if (croppedBytes.lengthInBytes > maxSizeInBytes) {
+//     if (context.mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(
+//           backgroundColor: Colors.red,
+//           content: Text('File size must be 500KB or less'),
+//         ),
+//       );
+//     }
+//     return;
+//   }
+
+//   // Cropped bytes ko temp file mein save karo upload ke liye
+//   final tempDir = await getTemporaryDirectory();
+//   final tempFile = File('${tempDir.path}/logo_${DateTime.now().millisecondsSinceEpoch}.png');
+//   await tempFile.writeAsBytes(croppedBytes);
+
+//   if (!context.mounted) return;
+//   await salesprovider.uploadHospitalLogo(hospitalId, tempFile, context);
+// }
+
 Future<void> _pickAndUploadLogo(BuildContext context, String hospitalId) async {
   final salesprovider = context.read<Salesprovider>();
   final ImagePicker picker = ImagePicker();
 
   final XFile? pickedFile = await picker.pickImage(
-    source: ImageSource.gallery,   // sirf gallery se, camera nahi
+    source: ImageSource.gallery,
     imageQuality: 85,
   );
 
-  if (pickedFile == null) {
-    return; // user cancelled
-  }
+  if (pickedFile == null) return; // user cancelled
 
-  File file = File(pickedFile.path);
-  final fileSizeInBytes = await file.length();
   const maxSizeInBytes = 500 * 1024; // 500 KB
+
+  // Step 1: File select hote hi turant size check karo (crop se PEHLE)
+  final int fileSizeInBytes = await pickedFile.length();
 
   if (fileSizeInBytes > maxSizeInBytes) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Colors.red,
-          content: Text('File size must be 500KB or less'),
+          content: Text('File size must be 500KB or less. Please choose a smaller image.'),
+        ),
+      );
+    }
+    return; // yahin ruk jao, crop screen tak jaayega hi nahi
+  }
+
+  if (!context.mounted) return;
+
+  final Uint8List originalBytes = await pickedFile.readAsBytes();
+
+  if (!context.mounted) return;
+
+  // Step 2: Crop dialog
+  final Uint8List? croppedBytes = await showDialog<Uint8List>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => UploadLogoDialog(imageBytes: originalBytes),
+  );
+
+  if (croppedBytes == null) return; // user ne cancel/close kiya
+
+  // Step 3: Crop ke baad bhi size check (kyunki crop se size badh bhi sakta hai edge cases mein)
+  if (croppedBytes.lengthInBytes > maxSizeInBytes) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('Cropped image exceeds 500KB. Please crop a smaller area.'),
         ),
       );
     }
     return;
   }
 
-  await salesprovider.uploadHospitalLogo(hospitalId, file, context);
+  if (!context.mounted) return;
+
+  // Step 4: Preview dialog
+  final bool? confirmed = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('Preview'),
+      content: SizedBox(
+        height: 200,
+        child: Image.memory(croppedBytes, fit: BoxFit.contain),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Upload'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed != true) return;
+
+  final tempDir = await getTemporaryDirectory();
+  final tempFile = File('${tempDir.path}/logo_${DateTime.now().millisecondsSinceEpoch}.png');
+  await tempFile.writeAsBytes(croppedBytes);
+
+  if (!context.mounted) return;
+  await salesprovider.uploadHospitalLogo(hospitalId, tempFile, context);
+  await salesprovider.getallhospitals(context);
+  salesprovider.notify();
 }
+
+// Future<void> _showDeleteConfirmation(BuildContext context, String hospitalId, String hospitalName) async {
+//   final salesprovider = context.read<Salesprovider>();
+
+//   showDialog(
+//     context: context,
+//     builder: (dialogContext) {
+//       return Dialog(
+//         insetPadding: EdgeInsets.symmetric(horizontal: 16),
+        
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//         child: Padding(
+//           padding: const EdgeInsets.all(16.0),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.center,
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               const Row(
+//                mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               Icon(Icons.warning_amber_rounded, color: Colors.red),
+//               SizedBox(width: 8),
+//               Text('Confirm Delete',
+//               style: TextStyle(
+//                 fontSize: 20,
+//                 fontWeight: FontWeight.bold,
+//               ),),
+//             ],
+//           ),
+//           SizedBox(height: 8,),
+//           Text(
+//             'Are you sure you want to delete "$hospitalName" Logo ? This action cannot be undone.',
+//             textAlign: TextAlign.center,
+//             style: const TextStyle(fontSize: 16,
+            
+//             ),
+//           ),
+//            SizedBox(height: 20,),
+//           Row(
+//             children: [
+//               Expanded(
+//                 child: 
+//                 // TextButton(
+//                 // onPressed: () => Navigator.pop(dialogContext),
+//                 // child: Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
+//                 //             ),
+//                             Container(
+//                 decoration: BoxDecoration(
+//                   gradient: AppColors.secondaryGradient,
+//                   borderRadius: BorderRadius.all(Radius.circular(16))
+//                 ),
+//                 child: ElevatedButton(
+//                   style: ElevatedButton.styleFrom(
+//                     backgroundColor: Colors.transparent,
+//                     foregroundColor: Colors.white,
+//                     shadowColor: Colors.transparent,
+//                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//                   ),
+//                   onPressed: () => Navigator.pop(dialogContext),
+//                   child: const Text('Cancel'),
+//                 ),
+//               )
+//               ),
+//               SizedBox(width: 16,),
+//             Expanded(
+//               child: Container(
+//                 decoration: BoxDecoration(
+//                   gradient: AppColors.primaryGradient,
+//                   borderRadius: BorderRadius.all(Radius.circular(16))
+//                 ),
+//                 child: ElevatedButton(
+//                   style: ElevatedButton.styleFrom(
+//                     backgroundColor: Colors.transparent,
+//                     foregroundColor: Colors.white,
+//                     shadowColor: Colors.transparent,
+//                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//                   ),
+//                   onPressed: () async {
+//                     Navigator.pop(dialogContext); // close confirmation dialog first
+//                     await salesprovider.deleteHospitalLogo(hospitalId, context);
+//                     await salesprovider.getallhospitals(context);
+//                      salesprovider.notify();
+//                   },
+//                   child: const Text('Delete'),
+//                 ),
+//               ),
+//             ),
+//             ],
+//           )
+//             ],
+//           ),
+//         ),
+//         // title: const Row(
+//         //   children: [
+//         //     Icon(Icons.warning_amber_rounded, color: Colors.red),
+//         //     SizedBox(width: 8),
+//         //     Text('Confirm Delete'),
+//         //   ],
+//         // ),
+//         // content: Text(
+//         //   'Are you sure you want to delete "$hospitalName"? This action cannot be undone.',
+//         //   style: const TextStyle(fontSize: 15),
+//         // ),
+//         // actions: [
+//         //   TextButton(
+//         //     onPressed: () => Navigator.pop(dialogContext),
+//         //     child: Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
+//         //   ),
+//         //   ElevatedButton(
+//         //     style: ElevatedButton.styleFrom(
+//         //       backgroundColor: Colors.red,
+//         //       foregroundColor: Colors.white,
+//         //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+//         //     ),
+//         //     onPressed: () async {
+//         //       Navigator.pop(dialogContext); // close confirmation dialog first
+//         //       await salesprovider.deleteHospital(hospitalId, context);
+//         //     },
+//         //     child: const Text('Delete'),
+//         //   ),
+//         // ],
+//       );
+//     },
+//   );
+// }
 
 Future<void> _showDeleteConfirmation(BuildContext context, String hospitalId, String hospitalName) async {
   final salesprovider = context.read<Salesprovider>();
+  bool isDeleting = false;
 
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (dialogContext) {
-      return Dialog(
-        insetPadding: EdgeInsets.symmetric(horizontal: 16),
-        
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Row(
-               mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Confirm Delete',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),),
-            ],
-          ),
-          SizedBox(height: 8,),
-          Text(
-            'Are you sure you want to delete "$hospitalName" Logo ? This action cannot be undone.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16,
-            
-            ),
-          ),
-           SizedBox(height: 20,),
-          Row(
-            children: [
-              Expanded(
-                child: 
-                // TextButton(
-                // onPressed: () => Navigator.pop(dialogContext),
-                // child: Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
-                //             ),
-                            Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.secondaryGradient,
-                  borderRadius: BorderRadius.all(Radius.circular(16))
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return PopScope(
+            canPop: !isDeleting, // delete ke dauran dialog close na ho
+            child: Dialog(
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.warning_amber_rounded, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Confirm Delete',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Are you sure you want to delete "$hospitalName" Logo ? This action cannot be undone.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: AppColors.secondaryGradient,
+                              borderRadius: BorderRadius.all(Radius.circular(16)),
+                            ),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              onPressed: isDeleting ? null : () => Navigator.pop(dialogContext),
+                              child: const Text('Cancel'),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: AppColors.primaryGradient,
+                              borderRadius: BorderRadius.all(Radius.circular(16)),
+                            ),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              onPressed: isDeleting
+                                  ? null
+                                  : () async {
+                                      setDialogState(() => isDeleting = true);
+                                      await salesprovider.deleteHospitalLogo(hospitalId, context);
+                                      await salesprovider.getallhospitals(context);
+                                      salesprovider.notify();
+                                      if (dialogContext.mounted) {
+                                        Navigator.pop(dialogContext);
+                                      }
+                                    },
+                              child: isDeleting
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text('Delete'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
-                ),
-              )
               ),
-              SizedBox(width: 16,),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.all(Radius.circular(16))
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(dialogContext); // close confirmation dialog first
-                    await salesprovider.deleteHospitalLogo(hospitalId, context);
-                  },
-                  child: const Text('Delete'),
-                ),
-              ),
             ),
-            ],
-          )
-            ],
-          ),
-        ),
-        // title: const Row(
-        //   children: [
-        //     Icon(Icons.warning_amber_rounded, color: Colors.red),
-        //     SizedBox(width: 8),
-        //     Text('Confirm Delete'),
-        //   ],
-        // ),
-        // content: Text(
-        //   'Are you sure you want to delete "$hospitalName"? This action cannot be undone.',
-        //   style: const TextStyle(fontSize: 15),
-        // ),
-        // actions: [
-        //   TextButton(
-        //     onPressed: () => Navigator.pop(dialogContext),
-        //     child: Text('Cancel', style: TextStyle(color: Colors.grey.shade700)),
-        //   ),
-        //   ElevatedButton(
-        //     style: ElevatedButton.styleFrom(
-        //       backgroundColor: Colors.red,
-        //       foregroundColor: Colors.white,
-        //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        //     ),
-        //     onPressed: () async {
-        //       Navigator.pop(dialogContext); // close confirmation dialog first
-        //       await salesprovider.deleteHospital(hospitalId, context);
-        //     },
-        //     child: const Text('Delete'),
-        //   ),
-        // ],
+          );
+        },
       );
     },
   );
@@ -635,21 +893,40 @@ class HospitalCard extends StatelessWidget {
                     label: 'LOGO',
                     value: '',
                     trailing: logoUrl != ''
-                        ? Container(
-                            width: 56,
-                            height: 56,
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Image.network(
-                              logoUrl,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) =>
-                                  const Icon(Icons.local_hospital, color: primaryRed),
-                            ),
-                          )
+                        ? 
+                         GestureDetector(
+          onTap: () => _showLogoPreview(context, logoUrl),   // 👈 naya
+          child: Container(
+            width: 56,
+            height: 56,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Image.network(
+              logoUrl,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.local_hospital, color: primaryRed),
+            ),
+          ),
+        )
+                        // Container(
+                        //     width: 56,
+                        //     height: 56,
+                        //     padding: const EdgeInsets.all(6),
+                        //     decoration: BoxDecoration(
+                        //       border: Border.all(color: Colors.grey.shade300),
+                        //       borderRadius: BorderRadius.circular(8),
+                        //     ),
+                        //     child: Image.network(
+                        //       logoUrl,
+                        //       fit: BoxFit.contain,
+                        //       errorBuilder: (_, __, ___) =>
+                        //           const Icon(Icons.local_hospital, color: primaryRed),
+                        //     ),
+                        //   )
                         : Container(
                             width: 56,
                             height: 56,
@@ -658,7 +935,11 @@ class HospitalCard extends StatelessWidget {
                               border: Border.all(color: Colors.grey.shade300),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Icon(FontAwesomeIcons.hospital ),
+                            child: Text("No Logo",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey
+                            ),),
                           ),
                   ),
        
@@ -669,21 +950,26 @@ class HospitalCard extends StatelessWidget {
                   // Action buttons row
                   Row(
                     children: [
-                      _RoundIconButton(
-                        icon: Icons.remove_red_eye_outlined,
-                        background: lightPink,
-                        iconColor: primaryRed,
-                        onTap: onView,
-                      ),
-                      const SizedBox(width: 10),
-                      _RoundIconButton(
-                        icon: Icons.edit_outlined,
-                        background: lightPink,
-                        iconColor: primaryRed,
-                        onTap: onEdit,
+                      Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.remove_red_eye_outlined,
+                          background: lightPink,
+                          iconColor: primaryRed,
+                          onTap: onView,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.edit_outlined,
+                          background: lightPink,
+                          iconColor: primaryRed,
+                          onTap: onEdit,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
                         child: Container(
                           height: 48,
                           decoration: BoxDecoration(
@@ -712,19 +998,23 @@ class HospitalCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      _RoundIconButton(
-                        icon: Icons.file_upload_outlined,
-                        background: darkRed,
-                        iconColor: Colors.white,
-                        onTap: onUpload,
+                      Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.file_upload_outlined,
+                          background: darkRed,
+                          iconColor: Colors.white,
+                          onTap: onUpload,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       if(logoUrl != '')
-                      _RoundIconButton(
-                        icon: Icons.delete_outline,
-                        background: primaryRed,
-                        iconColor: Colors.white,
-                        onTap: onDelete,
+                      Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.delete_outline,
+                          background: primaryRed,
+                          iconColor: Colors.white,
+                          onTap: onDelete,
+                        ),
                       ),
                     ],
                   ),
@@ -736,6 +1026,64 @@ class HospitalCard extends StatelessWidget {
       ),
     );
   }
+  void _showLogoPreview(BuildContext context, String logoUrl) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black87,
+    builder: (dialogContext) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Container(
+              constraints: const BoxConstraints(maxHeight: 400, maxWidth: 400),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4,
+                child: Image.network(
+                  logoUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const SizedBox(
+                      height: 200,
+                      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                    );
+                  },
+                  errorBuilder: (_, __, ___) => const SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: Icon(Icons.broken_image_outlined, size: 60, color: Colors.grey),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: -8,
+              right: -8,
+              child: Material(
+                color: Colors.white,
+                shape: const CircleBorder(),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: AppColors.primary),
+                  onPressed: () => Navigator.pop(dialogContext),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 }
  
 class _StatusBadge extends StatelessWidget {
@@ -1048,7 +1396,7 @@ class ViewHospitalModel extends StatelessWidget {
               Text(
                 value,
                 style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w500),
+                    fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ],
           )

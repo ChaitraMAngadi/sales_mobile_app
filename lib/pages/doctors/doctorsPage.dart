@@ -127,6 +127,7 @@ Future<void> _handleRefresh() async {
   );
 }
 
+
   Widget _buildMainContent(Salesprovider provider){
     return RefreshIndicator(
       onRefresh: () => _handleRefresh(),
@@ -216,7 +217,8 @@ Future<void> _handleRefresh() async {
       },
       
        name: item['name'], id: item['userid'], isactive: item['isActive'], phone: item['phone'], createdat: item['createdAt']??'',
-       validtill:item['validity'] ,
+       validtill:item['validity']??'' ,
+       phone2: item['phone2']??0,
        );
           },),
         );
@@ -579,6 +581,7 @@ class DoctorCard extends StatelessWidget {
   
   final bool isactive;
   final int phone;
+  final int phone2;
   final String validtill;
   final String createdat;
  
@@ -588,7 +591,7 @@ class DoctorCard extends StatelessWidget {
     required this.onView,
     required this.onEdit,
     required this.onToggleActive,
-   required this.isactive, required this.phone, required this.name, required this.id, required this.onPriceTap, required this.validtill, required this.createdat,
+   required this.isactive, required this.phone, required this.name, required this.id, required this.onPriceTap, required this.validtill, required this.createdat, required this.phone2,
   });
  
   static const Color primaryRed = AppColors.primary;
@@ -608,6 +611,18 @@ String formatDate(String isoDate) {
 
   return '${dateTime.month}/${dateTime.day}/${dateTime.year}, '
       '$hour:${twoDigits(dateTime.minute)}:${twoDigits(dateTime.second)} $period';
+}
+
+String formatValidDate(String isoDate) {
+  final dateTime = DateTime.parse(isoDate).toLocal();
+
+  int hour = dateTime.hour % 12;
+  hour = hour == 0 ? 12 : hour;
+  String period = dateTime.hour >= 12 ? 'PM' : 'AM';
+
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+
+  return '${dateTime.month}/${dateTime.day}/${dateTime.year}';
 }
 
   @override
@@ -675,9 +690,18 @@ String formatDate(String isoDate) {
                   // Phone row
                   _InfoRow(label: 'PHONE', value: phone.toString()),
                   const SizedBox(height: 14),
+
+                  
+       
+                  // Phone row
+                  if(phone2 != 0)
+                  _InfoRow(label: 'SECONDARY PHONE', value: phone2.toString()),
+                  if(phone2 != 0)
+                  const SizedBox(height: 14),
        
                   // Logo row
-                  _InfoRow(label: 'Valid Till', value: formatDate(validtill)),
+                  if(validtill != '')
+                  _InfoRow(label: 'Valid Till', value:formatValidDate(validtill)),
                   const SizedBox(height: 14),
                   _InfoRow(label: 'Created', value: formatDate(createdat)),
        
@@ -688,28 +712,35 @@ String formatDate(String isoDate) {
                   // Action buttons row
                   Row(
                     children: [
-                      _RoundIconButton(
-                        icon: Icons.remove_red_eye_outlined,
-                        background: lightPink,
-                        iconColor: primaryRed,
-                        onTap: onView,
-                      ),
-                      const SizedBox(width: 10),
-                      _RoundIconButton(
-                        icon: Icons.edit_outlined,
-                        background: lightPink,
-                        iconColor: primaryRed,
-                        onTap: onEdit,
-                      ),
-                      const SizedBox(width: 10),
-                       _RoundIconButton(
-                        icon: Icons.monetization_on_outlined,
-                        background: lightPink,
-                        iconColor: primaryRed,
-                        onTap: onPriceTap,
+                      Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.remove_red_eye_outlined,
+                          background: lightPink,
+                          iconColor: primaryRed,
+                          onTap: onView,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.edit_outlined,
+                          background: lightPink,
+                          iconColor: primaryRed,
+                          onTap: onEdit,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                       Expanded(
+                         child: _RoundIconButton(
+                          icon: Icons.monetization_on_outlined,
+                          background: lightPink,
+                          iconColor: primaryRed,
+                          onTap: onPriceTap,
+                                               ),
+                       ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
                         child: Container(
                           height: 48,
                           decoration: BoxDecoration(
@@ -1227,7 +1258,7 @@ _associatedHospitalsTile(),
               Text(
                 value,
                 style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w500),
+                    fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ],
           )

@@ -26,6 +26,9 @@ class _LoginPageState extends State<LoginPage> {
   final loginformkey = GlobalKey<FormState>();
   late Future loginphone;
   bool _obscureText = true;
+  bool _isLoading = false;
+    bool _autoValidate = false; 
+
 
   @override
   void dispose() {
@@ -83,6 +86,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     Form(
                         key: loginformkey,
+                        autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -103,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                               ],
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return null; // No error for empty value
+                                  return 'Please enter email'; // No error for empty value
                                 }
 
                                 const emailRegex =
@@ -215,138 +221,213 @@ class _LoginPageState extends State<LoginPage> {
                             SizedBox(
                               height: 16,
                             ),
-                            Container(
-                              decoration: BoxDecoration(
-                               borderRadius:BorderRadius.all(Radius.circular(12)),
-                               gradient: AppColors.primaryGradient, 
-                              ),
-                              width: double.infinity,
-                              child: FilledButton(
-                                  style: ButtonStyle(
-                                    padding: WidgetStateProperty.all(
-                                        const EdgeInsets.symmetric(
-                                      vertical: 14,
-                                    )),
-                                    backgroundColor: WidgetStateProperty.all(
-                                        Colors.transparent),
-                                        shadowColor: WidgetStatePropertyAll(Colors.transparent),
-                                    shape: WidgetStateProperty.all(
-                                        RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(23.0))),
-                                  ),
-                                  onPressed: () async {
-                                    if (loginformkey.currentState!.validate()) {
-                                      final inputemailText =
-                                          emailController.text.trim().toLowerCase();
-                                      final passwordText =
-                                          passwordController.text;
-                                          // print(inputemailText);
-                                      // loginwithphone(inputText, context);
+//                             Container(
+//                               decoration: BoxDecoration(
+//                                borderRadius:BorderRadius.all(Radius.circular(12)),
+//                                gradient: AppColors.primaryGradient, 
+//                               ),
+//                               width: double.infinity,
+//                               child: FilledButton(
+//                                   style: ButtonStyle(
+//                                     padding: WidgetStateProperty.all(
+//                                         const EdgeInsets.symmetric(
+//                                       vertical: 14,
+//                                     )),
+//                                     backgroundColor: WidgetStateProperty.all(
+//                                         Colors.transparent),
+//                                         shadowColor: WidgetStatePropertyAll(Colors.transparent),
+//                                     shape: WidgetStateProperty.all(
+//                                         RoundedRectangleBorder(
+//                                             borderRadius:
+//                                                 BorderRadius.circular(23.0))),
+//                                   ),
+//                                   onPressed: () async {
+//                                     if (loginformkey.currentState!.validate()) {
+//                                       final inputemailText =
+//                                           emailController.text.trim().toLowerCase();
+//                                       final passwordText =
+//                                           passwordController.text;
+//                                           // print(inputemailText);
+//                                       // loginwithphone(inputText, context);
 
-                                      // if (inputText == "8217309343") {
-                                      //   // authprovider.loginphone(
-                                      //   //     inputText, context);
-                                      //    bool isLogged = await authprovider.loginphone(
-                                      //         inputText, context);
+//                                       // if (inputText == "8217309343") {
+//                                       //   // authprovider.loginphone(
+//                                       //   //     inputText, context);
+//                                       //    bool isLogged = await authprovider.loginphone(
+//                                       //         inputText, context);
 
-                                      //     // Close loading dialog
-                                      //     Navigator.of(context).pop();
+//                                       //     // Close loading dialog
+//                                       //     Navigator.of(context).pop();
 
-                                      //     if (isLogged) {
-                                      //       // Force rebuild of HomePage to pick up new token
-                                      //       // Use pushAndPopUntil to clear the navigation stack
-                                      //       context.router.pushAndPopUntil(
-                                      //         HomeRoute(),
-                                      //         predicate: (_) => false,
-                                      //       );
-                                      //     }
-                                      // Show loading dialog
-                                      // showDialog(
-                                      //   context: context,
-                                      //   barrierDismissible: false,
-                                      //   builder: (BuildContext context) {
-                                      //     return const Center(
-                                      //       child: CircularProgressIndicator(),
-                                      //     );
-                                      //   },
-                                      // );
+//                                       //     if (isLogged) {
+//                                       //       // Force rebuild of HomePage to pick up new token
+//                                       //       // Use pushAndPopUntil to clear the navigation stack
+//                                       //       context.router.pushAndPopUntil(
+//                                       //         HomeRoute(),
+//                                       //         predicate: (_) => false,
+//                                       //       );
+//                                       //     }
+//                                       // Show loading dialog
+//                                       // showDialog(
+//                                       //   context: context,
+//                                       //   barrierDismissible: false,
+//                                       //   builder: (BuildContext context) {
+//                                       //     return const Center(
+//                                       //       child: CircularProgressIndicator(),
+//                                       //     );
+//                                       //   },
+//                                       // );
 
-                                      // if (inputText == "8217309343") {
-                                      //   bool isLogged = await authprovider
-                                      //       .loginphone(inputText, context);
+//                                       // if (inputText == "8217309343") {
+//                                       //   bool isLogged = await authprovider
+//                                       //       .loginphone(inputText, context);
 
-                                      //   // Close loading dialog
-                                      //   Navigator.of(context).pop();
+//                                       //   // Close loading dialog
+//                                       //   Navigator.of(context).pop();
 
-                                      //   if (isLogged) {
-                                      //     // Force rebuild of HomePage to pick up new token
-                                      //     // Use pushAndPopUntil to clear the navigation stack
-                                      //     context.router.pushAndPopUntil(
-                                      //       HomeRoute(),
-                                      //       predicate: (_) => false,
-                                      //     );
-                                      //   }
+//                                       //   if (isLogged) {
+//                                       //     // Force rebuild of HomePage to pick up new token
+//                                       //     // Use pushAndPopUntil to clear the navigation stack
+//                                       //     context.router.pushAndPopUntil(
+//                                       //       HomeRoute(),
+//                                       //       predicate: (_) => false,
+//                                       //     );
+//                                       //   }
 
-                                      //   // bool islogged = await authprovider
-                                      //   //     .loginphone(inputText, context);
+//                                       //   // bool islogged = await authprovider
+//                                       //   //     .loginphone(inputText, context);
 
-                                      //   // await islogged
-                                      //   //     ? context.router
-                                      //   //         .popAndPush(HomeRoute())
-                                      //   //     : null;
-                                      // } else {
+//                                       //   // await islogged
+//                                       //   //     ? context.router
+//                                       //   //         .popAndPush(HomeRoute())
+//                                       //   //     : null;
+//                                       // } else {
 
-                                      //   bool isotpsent = await authprovider
-                                      //       .loginwithphone(inputText, context);
+//                                       //   bool isotpsent = await authprovider
+//                                       //       .loginwithphone(inputText, context);
 
-                                      //   isotpsent
-                                      //       ? context.router.replaceAll(
-                                      //           [OtpVerificationRoute()])
-                                      //       : null;
-                                      // }
+//                                       //   isotpsent
+//                                       //       ? context.router.replaceAll(
+//                                       //           [OtpVerificationRoute()])
+//                                       //       : null;
+//                                       // }
 
-print(inputemailText);
-print(passwordText);
-                                      if (inputemailText == "chaitraangadi@gmail.com" && passwordText =="8217309343") {
-                                        print(inputemailText);
-                                        bool isloggedin =
-                                            await authprovider.login(
-                                                inputemailText,
-                                                passwordText,
-                                                context);
+// print(inputemailText);
+// print(passwordText);
+//                                       if (inputemailText == "chaitraangadi@gmail.com" && passwordText =="8217309343") {
+//                                         print(inputemailText);
+//                                         bool isloggedin =
+//                                             await authprovider.login(
+//                                                 inputemailText,
+//                                                 passwordText,
+//                                                 context);
 
-                                        isloggedin
-                                            ? context.router
-                                                .replaceAll([DashboardRoute()])
-                                            // context.router.popAndPush(
-                                            //     const AuthenticationRoute())
-                                            : null;
-                                      } 
-                                      else {
-                                        bool isloggedin =
-                                            await authprovider.sendOTP(
-                                                inputemailText,
-                                                passwordText,
-                                                context);
+//                                         isloggedin
+//                                             ? context.router
+//                                                 .replaceAll([DashboardRoute()])
+//                                             // context.router.popAndPush(
+//                                             //     const AuthenticationRoute())
+//                                             : null;
+//                                       } 
+//                                       else {
+//                                         bool isloggedin =
+//                                             await authprovider.sendOTP(
+//                                                 inputemailText,
+//                                                 passwordText,
+//                                                 context);
 
-                                        isloggedin
-                                            ? context.router
-                                                .replaceAll([AuthenticationRoute(
-                                                email: inputemailText,
-                                                password: passwordText,
-                                              )])
-                                            : null;
-                                      }
-                                    }
-                                  },
-                                  child: const Text(
-                                    'Login',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                  )),
-                            ),
+//                                         isloggedin
+//                                             ? context.router
+//                                                 .replaceAll([AuthenticationRoute(
+//                                                 email: inputemailText,
+//                                                 password: passwordText,
+//                                               )])
+//                                             : null;
+//                                       }
+//                                     }
+//                                   },
+//                                   child: const Text(
+//                                     'Login',
+//                                     style: TextStyle(
+//                                         fontSize: 16,
+//                                         fontWeight: FontWeight.bold),
+//                                   )),
+//                             ),
+
+Container(
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+    gradient: AppColors.primaryGradient,
+  ),
+  width: double.infinity,
+  child: FilledButton(
+      style: ButtonStyle(
+        padding: WidgetStateProperty.all(
+            const EdgeInsets.symmetric(vertical: 14)),
+        backgroundColor: WidgetStateProperty.all(Colors.transparent),
+        shadowColor: WidgetStatePropertyAll(Colors.transparent),
+        shape: WidgetStateProperty.all(RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(23.0))),
+      ),
+      // yaha _isLoading true hone par onPressed ko null kar do -> button disable ho jayega
+      onPressed: _isLoading
+          ? null
+          : () async {
+              if (loginformkey.currentState!.validate()) {
+                setState(() {
+                  _isLoading = true; // click hote hi lock kar do
+                });
+
+                final inputemailText =
+                    emailController.text.trim().toLowerCase();
+                final passwordText = passwordController.text;
+
+                try {
+                  if (inputemailText == "chaitra@gmail.com" &&
+                      passwordText == "12345") {
+                    bool isloggedin = await authprovider.login(
+                        inputemailText, passwordText, context);
+
+                    isloggedin
+                        ? context.router.replaceAll([DashboardRoute()])
+                        : null;
+                  } else {
+                    bool isloggedin = await authprovider.sendOTP(
+                        inputemailText, passwordText, context);
+
+                    isloggedin
+                        ? context.router.replaceAll([
+                            AuthenticationRoute(
+                              email: inputemailText,
+                              password: passwordText,
+                            )
+                          ])
+                        : null;
+                  }
+                } finally {
+                  // agar widget abhi bhi mounted hai to loading false kar do
+                  if (mounted) {
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  }
+                }
+              }
+            },
+      child: _isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : const Text(
+              'Login',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            )),
+),                        
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

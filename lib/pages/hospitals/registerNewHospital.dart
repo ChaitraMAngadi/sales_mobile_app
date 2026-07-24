@@ -20,12 +20,13 @@ class _RegisterNewHospitalPageState extends State<RegisterNewHospitalPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final formkey = GlobalKey<FormState>();
+  bool _autoValidate = false; 
 
 
   @override
   Widget build(BuildContext context) {
     Salesprovider salesprovider =
-        context.read<Salesprovider>();
+        context.watch<Salesprovider>();
     return Scaffold(
       backgroundColor: AppColors.badgeBg,
         appBar: AppBar(
@@ -51,6 +52,9 @@ class _RegisterNewHospitalPageState extends State<RegisterNewHospitalPage> {
           padding: EdgeInsets.all(16),
           child: Form(
               key: formkey,
+               autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -59,7 +63,7 @@ class _RegisterNewHospitalPageState extends State<RegisterNewHospitalPage> {
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: _nameController,
                     inputFormatters: [
                       // LengthLimitingTextInputFormatter(50),
@@ -125,7 +129,7 @@ class _RegisterNewHospitalPageState extends State<RegisterNewHospitalPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _phoneController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     inputFormatters: <TextInputFormatter>[
                       LengthLimitingTextInputFormatter(10),
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -155,7 +159,7 @@ class _RegisterNewHospitalPageState extends State<RegisterNewHospitalPage> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _addressController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                    
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -195,7 +199,12 @@ class _RegisterNewHospitalPageState extends State<RegisterNewHospitalPage> {
                         ),
                       ),
                       onPressed: salesprovider.addinghospital? null: () async {
+                         setState(() {
+    _autoValidate = true;  
+  });
                         if (formkey.currentState!.validate()) {
+                          
+
                           setState(() {
                             salesprovider.addinghospital = true;
                           });
@@ -208,7 +217,7 @@ class _RegisterNewHospitalPageState extends State<RegisterNewHospitalPage> {
 
                           await salesprovider.getallhospitals(context);
 
-                          // patientpageprovider.notify();
+                          salesprovider.notify();
                         }
                       },
                       child:salesprovider.addinghospital? CircularProgressIndicator(): const Text(

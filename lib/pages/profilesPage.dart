@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
@@ -102,6 +103,9 @@ Widget build(BuildContext context) {
                         name: item['name'] ?? '',
                         phone: item['phone']?.toString() ?? '',
                         email: item['email'] ?? '',
+                        gender: item['gender']??'',
+                        address: item['address']??'',
+                        phone2: item['phone2']?.toString()??'',
                       ),
                     ],
                   ),
@@ -125,13 +129,17 @@ class ProfileCard extends StatefulWidget {
     super.key,
     required this.name,
     required this.phone,
-    required this.email,
+    required this.email, required this.gender, required this.address, required this.phone2,
     //  required this.userid, 
   });
 
   final String name;
   final String phone;
+  final String phone2;
   final String email;
+  final String gender;
+  final String address;
+  
   // final String userid;
 
   @override
@@ -229,13 +237,29 @@ class _ProfileCardState extends State<ProfileCard> {
                     label: "Phone Number",
                     value: widget.phone,
                   ),
+                  if (widget.phone2.isNotEmpty && widget.phone2 != "null")
+                  ProfileInfoTile(
+                    icon: LucideIcons.phone,
+                    label: "Alternative Phone Number",
+                    value: widget.phone2,
+                  ),
                 if (widget.email.isNotEmpty)
                   ProfileInfoTile(
                     icon: LucideIcons.mail,
                     label: "Email",
                     value: widget.email,
                   ),
-   
+                   ProfileInfoTile(
+                    icon: Icons.person,
+                    label: "Gender",
+                    value: widget.gender,
+                  ),
+                   ProfileInfoTile(
+                    icon: FontAwesomeIcons.addressCard,
+                    label: "Address",
+                    value: widget.address,
+                  ),
+                  
               ],
             ),
           ),

@@ -29,6 +29,7 @@ class _EditHospitalPageState extends State<EditHospitalPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final formkey = GlobalKey<FormState>();
+  bool _autoValidate = false; 
 
 
   @override
@@ -145,6 +146,9 @@ class _EditHospitalPageState extends State<EditHospitalPage> {
                     child: SingleChildScrollView(
                       child: Form(
                         key: formkey,
+                         autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
@@ -154,8 +158,7 @@ class _EditHospitalPageState extends State<EditHospitalPage> {
                                     fontSize: 16, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
                             TextFormField(
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
+                              
                               controller: _nameController,
                               inputFormatters: [
                                 // LengthLimitingTextInputFormatter(50),
@@ -176,7 +179,7 @@ class _EditHospitalPageState extends State<EditHospitalPage> {
                             ),
                             const SizedBox(height: 16),
                             const Text(
-                              'Email of the Hospital',
+                              'Email of the Hospital*',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -217,8 +220,7 @@ class _EditHospitalPageState extends State<EditHospitalPage> {
                             const SizedBox(height: 8),
                             TextFormField(
                               controller: _phoneController,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
+                              
                               inputFormatters: <TextInputFormatter>[
                                 LengthLimitingTextInputFormatter(10),
                                 FilteringTextInputFormatter.allow(
@@ -248,8 +250,7 @@ class _EditHospitalPageState extends State<EditHospitalPage> {
                             ),
                             const SizedBox(height: 8),
                             TextFormField(
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
+                             
                               controller: _addressController,
                               decoration: InputDecoration(
                                 
@@ -295,6 +296,9 @@ class _EditHospitalPageState extends State<EditHospitalPage> {
                                   ),
                                 ),
                                 onPressed:salesprovider.iseditinghospital? null: () async {
+                                   setState(() {
+    _autoValidate = true;  
+  });
                                   if (formkey.currentState!.validate()) {
                                      setState(() {
                                   salesprovider.iseditinghospital = true;

@@ -105,7 +105,7 @@ print(Constants.biometricEnabled);
 
   Future<bool> sendOTP(
       String email, String password, BuildContext context) async {
-    String url = "${Constants.baseUrl}/api/v1/admin/loginphone";
+    String url = "${Constants.baseUrl}/api/v1/sales/loginphone";
     final headers = await DeviceHeaders.getDeviceHeaders();
 
     print(url);
@@ -318,7 +318,7 @@ void _showSnackbar(BuildContext context, String message,
 
   Future<void> resendOTP(
       String email, String password, BuildContext context) async {
-    String url = "${Constants.baseUrl}/api/v1/admin/loginotpphone";
+    String url = "${Constants.baseUrl}/api/v1/sales/loginphone";
     final headers = await DeviceHeaders.getDeviceHeaders();
 
 
@@ -369,7 +369,7 @@ void _showSnackbar(BuildContext context, String message,
 
   Future<void> verifyphoneOtp(
       String email, String otp, BuildContext context) async {
-    String url = "${Constants.baseUrl}/api/v1/admin/verifyotpphone";
+    String url = "${Constants.baseUrl}/api/v1/sales/verifyotpphone";
 final headers = await DeviceHeaders.getDeviceHeaders();
 
 
@@ -430,7 +430,7 @@ print(Constants.biometricEnabled);
 
         ScaffoldMessenger.of(context).showSnackBar(sucessSnackbar);
 
-      //  context.router.replace(const AdminDashboardRoute());
+       context.router.replace(const DashboardRoute());
 
 
         // responseData['role'] =='doctor'? context.router.popAndPush(HomeRoute()):MaterialPageRoute(builder: (context) => const AdminDashboardPage());

@@ -39,6 +39,8 @@ class _EditDoctorPageState extends State<EditDoctorPage> {
   final formkey = GlobalKey<FormState>();
   bool _obscureText = true;
   List<Map<String, dynamic>> selectedHospitals = [];
+  bool _autoValidate = false;
+
 
   final List<String> _genderOptions = ['male', 'female', 'other'];
   String? _selectedGender;
@@ -101,14 +103,53 @@ if (validTillRaw != null) {
   }
 
 
+// Future<void> _pickValidTillDate() async {
+//   final now = DateTime.now();
+//   final picked = await showDatePicker(
+//     context: context,
+//     initialDate: (_validTillDate != null && _validTillDate!.isAfter(now))
+//         ? _validTillDate!
+//         : now,
+//     firstDate: now, // aaj se pehle ki date select nahi hogi
+//     lastDate: DateTime(now.year + 5),
+//     builder: (context, child) {
+//       return Theme(
+//         data: Theme.of(context).copyWith(
+//           colorScheme: ColorScheme.light(
+//             primary: const Color(0xFF0857C0),
+//           ),
+//         ),
+//         child: child!,
+//       );
+//     },
+//   );
+
+//   if (picked == null) return; // user ne cancel kiya
+
+//   setState(() {
+//     _validTillDate = picked;
+//   });
+
+//   final salesprovider = context.read<Salesprovider>();
+//   await salesprovider.changeDoctorValidity(
+//     doctorId: widget.doctorData['userid'],
+//     validTill: picked.toIso8601String(),
+//     context: context,
+//   );
+  
+// }
+
 Future<void> _pickValidTillDate() async {
   final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final firstSelectableDate = today.add(const Duration(days: 1)); // kal se selectable
+
   final picked = await showDatePicker(
     context: context,
-    initialDate: (_validTillDate != null && _validTillDate!.isAfter(now))
+    initialDate: (_validTillDate != null && _validTillDate!.isAfter(firstSelectableDate))
         ? _validTillDate!
-        : now,
-    firstDate: now, // aaj se pehle ki date select nahi hogi
+        : firstSelectableDate,
+    firstDate: firstSelectableDate, // aaj ki date bhi disable, sirf future
     lastDate: DateTime(now.year + 5),
     builder: (context, child) {
       return Theme(
@@ -128,7 +169,7 @@ Future<void> _pickValidTillDate() async {
     _validTillDate = picked;
   });
 
-  final salesprovider = context.read<Salesprovider>();
+  final salesprovider = context.watch<Salesprovider>();
   await salesprovider.changeDoctorValidity(
     doctorId: widget.doctorData['userid'],
     validTill: picked.toIso8601String(),
@@ -144,7 +185,7 @@ String get _formattedValidTill {
 
   @override
   Widget build(BuildContext context) {
-    Salesprovider salesprovider = context.read<Salesprovider>();
+    Salesprovider salesprovider = context.watch<Salesprovider>();
     return Scaffold(
       backgroundColor: AppColors.badgeBg,
       appBar: AppBar(
@@ -170,6 +211,9 @@ String get _formattedValidTill {
         padding: EdgeInsets.all(16),
         child: Form(
           key: formkey,
+           autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled, 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -288,7 +332,6 @@ SizedBox(height: 16,),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: _nameController,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 ]')),
@@ -311,7 +354,6 @@ SizedBox(height: 16,),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: InputDecoration(
                   hintText: 'Select gender',
                   border: OutlineInputBorder(),
@@ -368,7 +410,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _phoneController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 inputFormatters: <TextInputFormatter>[
                   LengthLimitingTextInputFormatter(10),
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -395,7 +436,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _alternativephoneController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 inputFormatters: <TextInputFormatter>[
                   LengthLimitingTextInputFormatter(10),
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -428,7 +468,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _qualificationController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter qualification';
@@ -448,7 +487,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _specializationController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter Specialization';
@@ -468,7 +506,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _registrationnumberController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter Registration Number';
@@ -488,7 +525,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _yearofregistrationController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
                 ],
@@ -512,7 +548,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _boardofregistrationController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter Board of Registration';
@@ -525,72 +560,90 @@ SizedBox(height: 16,),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Price per Diagnosis*',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _priceperdiagnosisController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter Price per Diagnosis';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter Price per Diagnosis',
-                ),
-              ),
-              SizedBox(height: 16),
+             
               const Text("Associated Hospitals*",
                   style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
+              // DropdownSearch<Map<String, dynamic>>.multiSelection(
+              //   items: widget.allhospitals,
+              //   itemAsString: (doc) => "${doc['name']} | ${doc['userid']}",
+              //   compareFn: (item1, item2) =>
+              //       item1['userid'] == item2['userid'],
+              //   selectedItems: selectedHospitals,
+              //   popupProps: PopupPropsMultiSelection.menu(
+              //     showSearchBox: true,
+              //     showSelectedItems: true,
+              //     constraints: BoxConstraints(maxHeight: 200),
+              //     menuProps: MenuProps(
+              //       borderRadius: BorderRadius.circular(12),
+              //     ),
+              //   ),
+              //   dropdownDecoratorProps: DropDownDecoratorProps(
+              //     dropdownSearchDecoration: InputDecoration(
+              //       hintText: "Select Associated Hospitals",
+              //       border: OutlineInputBorder(
+              //         borderRadius: BorderRadius.circular(12),
+              //       ),
+              //       focusedBorder: OutlineInputBorder(
+              //         borderRadius: BorderRadius.circular(12),
+              //         borderSide: const BorderSide(color: Color(0xFF0857C0)),
+              //       ),
+              //     ),
+              //   ),
+              //   validator: (value) {
+              //     if (value == null || value.isEmpty) {
+              //       return "Please select at least one Associated Hospital";
+              //     }
+              //     return null;
+              //   },
+              //   onChanged: (value) {
+              //     setState(() {
+              //       selectedHospitals = value;
+              //     });
+              //   },
+              // ),
               DropdownSearch<Map<String, dynamic>>.multiSelection(
-                items: widget.allhospitals,
-                itemAsString: (doc) => "${doc['name']} | ${doc['userid']}",
-                compareFn: (item1, item2) =>
-                    item1['userid'] == item2['userid'],
-                selectedItems: selectedHospitals,
-                autoValidateMode: AutovalidateMode.onUserInteraction,
-                popupProps: PopupPropsMultiSelection.menu(
-                  showSearchBox: true,
-                  showSelectedItems: true,
-                  constraints: BoxConstraints(maxHeight: 200),
-                  menuProps: MenuProps(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    hintText: "Select Associated Hospitals",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF0857C0)),
-                    ),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please select at least one Associated Hospital";
-                  }
-                  return null;
-                },
-                onChanged: (value) {
-                  setState(() {
-                    selectedHospitals = value;
-                  });
-                },
-              ),
+  items: widget.allhospitals,
+  itemAsString: (doc) => "${doc['name']} | ${doc['userid']}",
+  compareFn: (item1, item2) => item1['userid'] == item2['userid'],  // 👈 ye add karo
+  selectedItems: selectedHospitals,
+  // autoValidateMode: AutovalidateMode.onUserInteraction,
+  popupProps: PopupPropsMultiSelection.menu(
+    showSearchBox: true,
+    showSelectedItems: true,
+    constraints: BoxConstraints(
+      maxHeight: 300,
+    ),
+    menuProps: MenuProps(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+  dropdownDecoratorProps: DropDownDecoratorProps(
+    dropdownSearchDecoration: InputDecoration(
+      hintText: "Select Associated Hospitals",
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF0857C0)),
+      ),
+    ),
+  ),
+  validator: (value) {
+    if (value == null || value.isEmpty) {
+      return "Please select at least one Associated Hospital";
+    }
+    return null;
+  },
+  onChanged: (value) {
+    setState(() {
+      selectedHospitals = value;
+    });
+    debugPrint(
+        "Consulting hospital IDs: ${value.map((h) => h['userid']).toList()}");
+  },
+),
               SizedBox(height: 32),
               Container(
                 width: double.infinity,
@@ -615,7 +668,13 @@ SizedBox(height: 16,),
                   onPressed: salesprovider.updatingdoctor
                       ? null
                       : () async {
+                         setState(() {
+    _autoValidate = true;  
+  });
                           if (formkey.currentState!.validate()) {
+                             setState(() {
+                                  salesprovider.updatingdoctor = true;
+                                });
                             final hospitalIds = selectedHospitals
                                 .map((h) => h['userid'].toString())
                                 .toList();
@@ -639,8 +698,7 @@ SizedBox(height: 16,),
                                   _yearofregistrationController.text,
                               boardofregistration:
                                   _boardofregistrationController.text,
-                              priceperdiagnosis:
-                                  _priceperdiagnosisController.text,
+                             
                               associatedhospital: hospitalIds,
                               context: context,
                             );
@@ -1126,6 +1184,7 @@ class _ChangePriceDialogState extends State<ChangePriceDialog> {
                   onPressed: salesprovider.updatingdoctorprice
                       ? null
                       : () async {
+                        
                           if (_formKey.currentState!.validate()) {
                             await salesprovider.updateDoctorPrice(
                               doctorId: widget.doctorId,

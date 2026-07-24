@@ -446,21 +446,26 @@ class LabtechnicianCard extends StatelessWidget {
                   // Action buttons row
                   Row(
                     children: [
-                      _RoundIconButton(
-                        icon: Icons.remove_red_eye_outlined,
-                        background: lightPink,
-                        iconColor: primaryRed,
-                        onTap: onView,
-                      ),
-                      const SizedBox(width: 10),
-                      _RoundIconButton(
-                        icon: Icons.edit_outlined,
-                        background: lightPink,
-                        iconColor: primaryRed,
-                        onTap: onEdit,
+                      Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.remove_red_eye_outlined,
+                          background: lightPink,
+                          iconColor: primaryRed,
+                          onTap: onView,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.edit_outlined,
+                          background: lightPink,
+                          iconColor: primaryRed,
+                          onTap: onEdit,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
                         child: Container(
                           height: 48,
                           decoration: BoxDecoration(
@@ -814,7 +819,7 @@ class ViewLabtechnicianModel extends StatelessWidget {
               Text(
                 value,
                 style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w500),
+                    fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ],
           )

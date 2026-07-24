@@ -32,6 +32,8 @@ class _EditAdminPageState extends State<EditAdminPage> {
   List<Map<String, dynamic>> selectedDoctors = [];
 
   String? adminid;
+    bool _autoValidate = false;
+
 
 
   @override
@@ -62,7 +64,7 @@ class _EditAdminPageState extends State<EditAdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    Salesprovider salesprovider = context.read<Salesprovider>();
+    Salesprovider salesprovider = context.watch<Salesprovider>();
     return Scaffold(
       backgroundColor: AppColors.badgeBg,
       appBar: AppBar(
@@ -88,6 +90,9 @@ class _EditAdminPageState extends State<EditAdminPage> {
         padding: EdgeInsets.all(16),
         child: Form(
           key: formkey,
+           autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -141,7 +146,6 @@ SizedBox(height: 16,),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: _nameController,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 ]')),
@@ -192,7 +196,6 @@ SizedBox(height: 16,),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _phoneController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 inputFormatters: <TextInputFormatter>[
                   LengthLimitingTextInputFormatter(10),
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -225,48 +228,89 @@ SizedBox(height: 16,),
               
              SizedBox(height: 16,),
 
-              const Text("Associated Hospitals*",
+              const Text("Associated Doctors*",
                   style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
+              // DropdownSearch<Map<String, dynamic>>.multiSelection(
+              //   items: widget.alldoctors,
+              //   itemAsString: (doc) => "${doc['name']} | ${doc['userid']}",
+              //   compareFn: (item1, item2) =>
+              //       item1['userid'] == item2['userid'],
+              //   selectedItems: selectedDoctors,
+              //   popupProps: PopupPropsMultiSelection.menu(
+              //     showSearchBox: true,
+              //     showSelectedItems: true,
+              //     constraints: BoxConstraints(maxHeight: 200),
+              //     menuProps: MenuProps(
+              //       borderRadius: BorderRadius.circular(12),
+              //     ),
+              //   ),
+              //   dropdownDecoratorProps: DropDownDecoratorProps(
+              //     dropdownSearchDecoration: InputDecoration(
+              //       hintText: "Select Associated Doctors",
+              //       border: OutlineInputBorder(
+              //         borderRadius: BorderRadius.circular(12),
+              //       ),
+              //       focusedBorder: OutlineInputBorder(
+              //         borderRadius: BorderRadius.circular(12),
+              //         borderSide: const BorderSide(color: Color(0xFF0857C0)),
+              //       ),
+              //     ),
+              //   ),
+              //   validator: (value) {
+              //     if (value == null || value.isEmpty) {
+              //       return "Please select at least one Associated Doctor";
+              //     }
+              //     return null;
+              //   },
+              //   onChanged: (value) {
+              //     setState(() {
+              //       selectedDoctors = value;
+              //     });
+              //   },
+              // ),
               DropdownSearch<Map<String, dynamic>>.multiSelection(
-                items: widget.alldoctors,
-                itemAsString: (doc) => "${doc['name']} | ${doc['userid']}",
-                compareFn: (item1, item2) =>
-                    item1['userid'] == item2['userid'],
-                selectedItems: selectedDoctors,
-                autoValidateMode: AutovalidateMode.onUserInteraction,
-                popupProps: PopupPropsMultiSelection.menu(
-                  showSearchBox: true,
-                  showSelectedItems: true,
-                  constraints: BoxConstraints(maxHeight: 200),
-                  menuProps: MenuProps(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    hintText: "Select Associated Doctors",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF0857C0)),
-                    ),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please select at least one Associated Doctor";
-                  }
-                  return null;
-                },
-                onChanged: (value) {
-                  setState(() {
-                    selectedDoctors = value;
-                  });
-                },
-              ),
+  items: widget.alldoctors,
+  itemAsString: (doc) => "${doc['name']} | ${doc['userid']}",
+  compareFn: (item1, item2) => item1['userid'] == item2['userid'],  // 👈 ye add karo
+  selectedItems: selectedDoctors,
+  // autoValidateMode: AutovalidateMode.onUserInteraction,
+  popupProps: PopupPropsMultiSelection.menu(
+    showSearchBox: true,
+    showSelectedItems: true,
+    constraints: BoxConstraints(
+      maxHeight: 300,
+    ),
+    menuProps: MenuProps(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+  dropdownDecoratorProps: DropDownDecoratorProps(
+    dropdownSearchDecoration: InputDecoration(
+      hintText: "Select Associated Doctor",
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF0857C0)),
+      ),
+    ),
+  ),
+  validator: (value) {
+    if (value == null || value.isEmpty) {
+      return "Please select at least one Associated Doctor";
+    }
+    return null;
+  },
+  onChanged: (value) {
+    setState(() {
+      selectedDoctors = value;
+    });
+    debugPrint(
+        "Consulting Doctor IDs: ${value.map((h) => h['userid']).toList()}");
+  },
+),
               SizedBox(height: 32),
               Container(
                 width: double.infinity,
@@ -291,7 +335,13 @@ SizedBox(height: 16,),
                   onPressed: salesprovider.updatingadmin
                       ? null
                       : () async {
+                         setState(() {
+    _autoValidate = true;  
+  });
                           if (formkey.currentState!.validate()) {
+                             setState(() {
+                                  salesprovider.updatingadmin = true;
+                                });
                             final hospitalIds = selectedDoctors
                                 .map((h) => h['userid'].toString())
                                 .toList();

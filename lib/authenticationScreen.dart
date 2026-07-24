@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_mobile_app/provider/authProvider.dart';
+import 'package:sales_mobile_app/routes/app_router.dart';
 import 'package:sales_mobile_app/services/constants.dart';
 import 'package:sales_mobile_app/services/secureStorage.dart';
 import 'package:sales_mobile_app/theme/app_colors.dart';
@@ -29,6 +30,8 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
   Timer? _timer;
   int _start = 100; // Set your countdown time in seconds
   bool _isButtonDisabled = true;
+  bool _isLoading = false;
+  bool _isResendLoading = false;
   final SecureStorage secureStorage = SecureStorage();
 
   @override
@@ -56,26 +59,48 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
     });
   }
 
-  void resendOtp() {
+  // void resendOtp() {
+  //   Authprovider authprovider = context.read<Authprovider>();
+  //   authprovider.resendOTP(widget.email, widget.password, context);
+  //   // authprovider.resendOtp(Constants.phone, context);
+  //   // // Logic to resend the OTP
+
+  //   // if (widget.input!.contains(RegExp(r'[@.com]'))) {
+  //   //   authenticationProvider.loginwithemail(widget.input ?? "", context);
+  //   //   print("Logged in with email");
+  //   //   print("OTP Resent");
+  //   // } else {
+  //   //   authenticationProvider.loginwithphone(
+  //   //       widget.input ?? "", context); // Ensure this method is defined
+  //   //   print("Logged in with phone");
+  //   //   print("OTP Resent");
+  //   // }
+
+  //   // Restart the timer after resending
+  //   startTimer();
+  // }
+
+  Future<void> resendOtp() async {
+  if (_isResendLoading) return; // extra safety, double-tap guard
+
+  setState(() {
+    _isResendLoading = true;
+  });
+
+  try {
     Authprovider authprovider = context.read<Authprovider>();
-    authprovider.resendOTP(widget.email, widget.password, context);
-    // authprovider.resendOtp(Constants.phone, context);
-    // // Logic to resend the OTP
-
-    // if (widget.input!.contains(RegExp(r'[@.com]'))) {
-    //   authenticationProvider.loginwithemail(widget.input ?? "", context);
-    //   print("Logged in with email");
-    //   print("OTP Resent");
-    // } else {
-    //   authenticationProvider.loginwithphone(
-    //       widget.input ?? "", context); // Ensure this method is defined
-    //   print("Logged in with phone");
-    //   print("OTP Resent");
-    // }
-
-    // Restart the timer after resending
-    startTimer();
+    await authprovider.resendOTP(widget.email, widget.password, context);
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isResendLoading = false;
+      });
+    }
   }
+
+  // Restart the timer after resending
+  startTimer();
+}
 
   @override
   void dispose() {
@@ -90,9 +115,14 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
     
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient
+          ),
+        ),
         leading: IconButton(
             onPressed: () {
-              Navigator.pop(context);
+             context.router.replaceAll([LoginRoute()]);
             },
             icon: Icon(Icons.arrow_back)),
       ),
@@ -174,59 +204,122 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
                     const SizedBox(
                       height: 10,
                     ),
+                    // Container(
+                    //   decoration: BoxDecoration(
+                    //     borderRadius: BorderRadius.all(Radius.circular(12)),
+                    //     gradient: AppColors.primaryGradient,
+                    //   ),
+                    //   width: double.infinity,
+                    //   child: FilledButton(
+                    //       style: ButtonStyle(
+                    //         padding: WidgetStateProperty.all(
+                    //             const EdgeInsets.symmetric(
+                    //           vertical: 14,
+                    //         )),
+                    //         backgroundColor: WidgetStateProperty.all(
+                    //             Colors.transparent),
+                    //             shadowColor: WidgetStatePropertyAll(Colors.transparent),
+                    //         shape: WidgetStateProperty.all(
+                    //             RoundedRectangleBorder(
+                    //                 borderRadius: BorderRadius.circular(23.0))),
+                    //       ),
+                    //       onPressed: () async {
+                    //         // bool isloggedin = 
+                    //         await authprovider.verifyphoneOtp(
+                    //             widget.email, otpcontroller.text, context);
+
+
+                    //         // isloggedin
+                    //         //     ? Constants.role =='doctor'? context.router.popAndPush(HomeRoute()):MaterialPageRoute(builder: (context) => const AdminDashboardPage())
+                    //             // context.router.popAndPush(
+                    //             //     const AuthenticationRoute())
+                    //             // : null;
+                    //         // context.router.popAndPush(HomeRoute());
+                    //       },
+                    //       child: const Text(
+                    //         'Continue',
+                    //         style: TextStyle(
+                    //             fontSize: 16, fontWeight: FontWeight.bold),
+                    //       )),
+                    // ),
                     Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
-                        gradient: AppColors.primaryGradient,
-                      ),
-                      width: double.infinity,
-                      child: FilledButton(
-                          style: ButtonStyle(
-                            padding: WidgetStateProperty.all(
-                                const EdgeInsets.symmetric(
-                              vertical: 14,
-                            )),
-                            backgroundColor: WidgetStateProperty.all(
-                                Colors.transparent),
-                                shadowColor: WidgetStatePropertyAll(Colors.transparent),
-                            shape: WidgetStateProperty.all(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(23.0))),
-                          ),
-                          onPressed: () async {
-                            // bool isloggedin = 
-                            await authprovider.verifyphoneOtp(
-                                widget.email, otpcontroller.text, context);
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+    gradient: AppColors.primaryGradient,
+  ),
+  width: double.infinity,
+  child: FilledButton(
+      style: ButtonStyle(
+        padding: WidgetStateProperty.all(
+            const EdgeInsets.symmetric(vertical: 14)),
+        backgroundColor: WidgetStateProperty.all(Colors.transparent),
+        shadowColor: WidgetStatePropertyAll(Colors.transparent),
+        shape: WidgetStateProperty.all(RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(23.0))),
+      ),
+      // isLoading true hote hi button disable
+      onPressed: _isLoading
+          ? null
+          : () async {
+              setState(() {
+                _isLoading = true;
+              });
 
-
-                            // isloggedin
-                            //     ? Constants.role =='doctor'? context.router.popAndPush(HomeRoute()):MaterialPageRoute(builder: (context) => const AdminDashboardPage())
-                                // context.router.popAndPush(
-                                //     const AuthenticationRoute())
-                                // : null;
-                            // context.router.popAndPush(HomeRoute());
-                          },
-                          child: const Text(
-                            'Continue',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          )),
-                    ),
+              try {
+                await authprovider.verifyphoneOtp(
+                    widget.email, otpcontroller.text, context);
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              }
+            },
+      child: _isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : const Text(
+              'Continue',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            )),
+),
                     const SizedBox(
                       height: 10,
                     ),
-                    TextButton(
-                      // style: const ButtonStyle(
-                      //   backgroundColor: WidgetStatePropertyAll(Colors.transparent),
 
-                      // ),
-                      onPressed: _isButtonDisabled ? null : resendOtp,
-                      child: Text(
-                        _isButtonDisabled
-                            ? "Resend OTP in $_start s"
-                            : "Resend OTP",
-                      ),
-                    ),
+                    TextButton(
+  onPressed: (_isButtonDisabled || _isResendLoading) ? null : resendOtp,
+  child: _isResendLoading
+      ? const SizedBox(
+          height: 16,
+          width: 16,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : Text(
+          _isButtonDisabled
+              ? "Resend OTP in $_start s"
+              : "Resend OTP",
+        ),
+),
+                    // TextButton(
+                    //   // style: const ButtonStyle(
+                    //   //   backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+
+                    //   // ),
+                    //   onPressed: _isButtonDisabled ? null : resendOtp,
+                    //   child: Text(
+                    //     _isButtonDisabled
+                    //         ? "Resend OTP in $_start s"
+                    //         : "Resend OTP",
+                    //   ),
+                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

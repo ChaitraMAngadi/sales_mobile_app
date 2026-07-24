@@ -28,12 +28,13 @@ class _RegisterNewLabtechnicianPageState extends State<RegisterNewLabtechnicianP
   final TextEditingController _addressController = TextEditingController();
   final formkey = GlobalKey<FormState>();
   bool _obscureText = true;
+  bool _autoValidate = false;
 
 
   @override
   Widget build(BuildContext context) {
     Salesprovider salesprovider =
-        context.read<Salesprovider>();
+        context.watch<Salesprovider>();
     return Scaffold(
       backgroundColor: AppColors.badgeBg,
         appBar: AppBar(
@@ -59,6 +60,9 @@ class _RegisterNewLabtechnicianPageState extends State<RegisterNewLabtechnicianP
           padding: EdgeInsets.all(16),
           child: Form(
               key: formkey,
+              autovalidateMode: _autoValidate
+        ? AutovalidateMode.always
+        : AutovalidateMode.disabled,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -67,7 +71,7 @@ class _RegisterNewLabtechnicianPageState extends State<RegisterNewLabtechnicianP
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: _nameController,
                     inputFormatters: [
                       // LengthLimitingTextInputFormatter(50),
@@ -133,7 +137,7 @@ class _RegisterNewLabtechnicianPageState extends State<RegisterNewLabtechnicianP
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _phoneController,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     inputFormatters: <TextInputFormatter>[
                       LengthLimitingTextInputFormatter(10),
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -165,7 +169,7 @@ class _RegisterNewLabtechnicianPageState extends State<RegisterNewLabtechnicianP
                   const SizedBox(height: 8),
 
                   TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: _addressController,
                     // inputFormatters: [
                     //   // LengthLimitingTextInputFormatter(50),
@@ -201,11 +205,9 @@ class _RegisterNewLabtechnicianPageState extends State<RegisterNewLabtechnicianP
                               cursorColor: const Color(0Xff2556B9),
                              
                               validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Please enter password';
-                                }
-
-                                return null; // Return null if validation is successful
+                                 if (value == null || value.isEmpty) return "Please Enter password";
+        if (value.length < 5) return "Minimum 5 characters required"; // ✅ min check
+                                return null;
                               },
                               decoration: InputDecoration(
                                   focusedBorder: const OutlineInputBorder(
@@ -342,7 +344,11 @@ class _RegisterNewLabtechnicianPageState extends State<RegisterNewLabtechnicianP
                         ),
                       ),
                       onPressed: salesprovider.addinglabtechnician? null: () async {
+                        setState(() {
+    _autoValidate = true;  
+  });
                         if (formkey.currentState!.validate()) {
+                          
                           setState(() {
                             salesprovider.addinglabtechnician = true;
                           });
