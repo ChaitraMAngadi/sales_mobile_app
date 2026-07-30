@@ -33,6 +33,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
   bool _isLoading = false;
   bool _isResendLoading = false;
   final SecureStorage secureStorage = SecureStorage();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -173,32 +174,44 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: PinCodeTextField(
-                        controller: otpcontroller,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-                        ],
-                        autoFocus: true,
-                        appContext: context,
-                        length: 6,
-                        pastedTextStyle: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                      child: Form(
+                        key: _formKey,
+                        child: PinCodeTextField(
+                          controller: otpcontroller,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                          ],
+                          validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Please enter OTP";
+        }
+        if (value.length < 6) {
+          return "Enter complete 6-digit OTP";
+        }
+        return null;
+      },
+                          autoFocus: true,
+                          appContext: context,
+                          length: 6,
+                          pastedTextStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          animationType: AnimationType.fade,
+                          pinTheme: PinTheme(
+                            activeColor: AppColors.secondary,
+                            selectedColor: AppColors.primary,
+                            selectedFillColor: AppColors.badgeBg,
+                            inactiveColor: Colors.grey,
+                            shape: PinCodeFieldShape.box,
+                            borderRadius: BorderRadius.circular(10),
+                            fieldHeight: 40,
+                            fieldWidth: 40,
+                            activeFillColor: AppColors.badgeBg,
+                          ),
+                          cursorColor: Colors.black,
+                          animationDuration: const Duration(milliseconds: 300),
+                          // controller: otpTextEditController,
                         ),
-                        animationType: AnimationType.fade,
-                        pinTheme: PinTheme(
-                          activeColor: AppColors.secondary,
-                          selectedColor: AppColors.primary,
-                          selectedFillColor: AppColors.badgeBg,
-                          inactiveColor: Colors.grey,
-                          shape: PinCodeFieldShape.box,
-                          borderRadius: BorderRadius.circular(10),
-                          fieldHeight: 40,
-                          fieldWidth: 40,
-                          activeFillColor: AppColors.badgeBg,
-                        ),
-                        cursorColor: Colors.black,
-                        animationDuration: const Duration(milliseconds: 300),
-                        // controller: otpTextEditController,
                       ),
                     ),
                     const SizedBox(
@@ -258,24 +271,68 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
             borderRadius: BorderRadius.circular(23.0))),
       ),
       // isLoading true hote hi button disable
-      onPressed: _isLoading
-          ? null
-          : () async {
-              setState(() {
-                _isLoading = true;
-              });
+      // onPressed: _isLoading
+      //     ? null
+      //     : () async {
+      //         setState(() {
+      //           _isLoading = true;
+      //         });
 
-              try {
-                await authprovider.verifyphoneOtp(
-                    widget.email, otpcontroller.text, context);
-              } finally {
-                if (mounted) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                }
-              }
-            },
+      //         try {
+      //           await authprovider.verifyphoneOtp(
+      //               widget.email, otpcontroller.text, context);
+      //         } finally {
+      //           if (mounted) {
+      //             setState(() {
+      //               _isLoading = false;
+      //             });
+      //           }
+      //         }
+      //       },
+
+      onPressed: _isLoading
+    ? null
+    : () async {
+        // Pehle validate karo
+        final isValid = _formKey.currentState?.validate() ?? false;
+
+        if (otpcontroller.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please enter OTP")),
+          );
+          return; // API call mat karo
+        }
+
+        if (otpcontroller.text.trim().length < 6) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please enter complete 6-digit OTP")),
+          );
+          return;
+        }
+
+        if (!isValid) return;
+
+        setState(() {
+          _isLoading = true;
+        });
+
+        try {
+          await authprovider.verifyphoneOtp(
+              widget.email, otpcontroller.text, context);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Something went wrong: $e")),
+            );
+          }
+        } finally {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        }
+      },
       child: _isLoading
           ? const SizedBox(
               height: 20,

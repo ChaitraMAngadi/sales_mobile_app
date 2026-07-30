@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sales_mobile_app/appEnabletoggle.dart';
 import 'package:sales_mobile_app/loginPage.dart';
 import 'package:sales_mobile_app/pages/admins/adminsPage.dart';
+import 'package:sales_mobile_app/pages/analyticsPage.dart';
 import 'package:sales_mobile_app/pages/doctors/doctorsPage.dart';
 import 'package:sales_mobile_app/pages/hospitals/hospitalPage.dart';
 import 'package:sales_mobile_app/pages/labtechnician/labTechniciansPage.dart';
@@ -160,6 +161,24 @@ Widget build(BuildContext context) {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.switch_account_rounded,
+                        color: AppColors.primaryDark,),
+                        title: const Text('Analytics',
+                        style: TextStyle(
+                          color: AppColors.primaryDark
+                        ),),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const AnalyticsPage()),
                           );
                         },
                       ),

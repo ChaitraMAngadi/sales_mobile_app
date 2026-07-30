@@ -5,6 +5,7 @@ import 'package:sales_mobile_app/dashBoard.dart';
 import 'package:sales_mobile_app/loginPage.dart';
 import 'package:sales_mobile_app/pages/admins/editAdminPage.dart';
 import 'package:sales_mobile_app/pages/admins/registerNewAdmin.dart';
+import 'package:sales_mobile_app/pages/analyticsPage.dart';
 import 'package:sales_mobile_app/pages/doctors/editDoctorPage.dart';
 import 'package:sales_mobile_app/pages/doctors/registerNewDoctor.dart';
 import 'package:sales_mobile_app/pages/hospitals/editHospitalPage.dart';
@@ -60,6 +61,9 @@ class AppRouter extends _$AppRouter {
         ),
         AutoRoute(
           page: AuthenticationRoute.page,
+        ),
+        AutoRoute(
+          page: AnalyticsRoute.page,
         ),
       ];
 }

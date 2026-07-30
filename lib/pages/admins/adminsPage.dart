@@ -177,7 +177,7 @@ Future<void> _handleRefresh() async {
                         ), 
                          onEdit: () {
                                               context.router.push(
-                                                EditAdminRoute(adminData: item, alldoctors: provider.alldoctors,)
+                                                EditAdminRoute(adminData: item, alldoctors: provider.alldoctorsnames,)
                                                 );
       
                          },
@@ -293,7 +293,7 @@ class _TopActionsBar extends StatelessWidget {
         children: [
          Text(""),
           _GradientActionButton(icon: Icons.add, text: "Add Admin", onTap: (){
-            context.router.push(RegisterNewAdminRoute(alldoctors: salesprovider.alldoctors));
+            context.router.push(RegisterNewAdminRoute(alldoctors: salesprovider.alldoctorsnames));
           }),
         ],
       ),
