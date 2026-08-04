@@ -2572,16 +2572,18 @@ Future<void> changelabtechnicianpassword(String newPassword, String confirmPassw
 //////////////////////////////////////////////////////////////////////////////////////////////
 
   Future<void> refreshtoken(BuildContext context) async {
+    Constants.refreshtoken = await secureStorage.readSecureData('refreshtoken') ?? '';
+            Constants.token = await secureStorage.readSecureData('token') ?? '';
     try {
       Constants.refreshtoken = await secureStorage.readSecureData('refreshtoken') ?? '';
             Constants.token = await secureStorage.readSecureData('token') ?? '';
 
-      notifyListeners();
+      
 
       final response = await http.post(
         Uri.parse('${Constants.baseUrl}/api/v1/sales/refreshtokensalesphone'),
         headers: <String, String>{
-          'Authorization': 'Bearer ${Constants.token}',
+          'Authorization': 'Bearer ${Constants.refreshtoken}',
           'Content-Type': 'application/json',
           // ...headers,
         },

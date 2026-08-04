@@ -143,14 +143,17 @@ Future<void> _pickValidTillDate() async {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final firstSelectableDate = today.add(const Duration(days: 1)); // kal se selectable
+  final lastSelectableDate = today.add(const Duration(days: 60)); // sirf next 60 din tak
 
   final picked = await showDatePicker(
     context: context,
-    initialDate: (_validTillDate != null && _validTillDate!.isAfter(firstSelectableDate))
+    initialDate: (_validTillDate != null &&
+            _validTillDate!.isAfter(firstSelectableDate) &&
+            _validTillDate!.isBefore(lastSelectableDate.add(const Duration(days: 1))))
         ? _validTillDate!
         : firstSelectableDate,
-    firstDate: firstSelectableDate, // aaj ki date bhi disable, sirf future
-    lastDate: DateTime(now.year + 5),
+    firstDate: firstSelectableDate, // aaj disable, sirf future
+    lastDate: lastSelectableDate,   // 60 din se aage disable
     builder: (context, child) {
       return Theme(
         data: Theme.of(context).copyWith(
@@ -169,13 +172,51 @@ Future<void> _pickValidTillDate() async {
     _validTillDate = picked;
   });
 
-  final salesprovider = context.watch<Salesprovider>();
+  final salesprovider = context.read<Salesprovider>();
   await salesprovider.changeDoctorValidity(
     doctorId: widget.doctorData['userid'],
     validTill: picked.toIso8601String(),
     context: context,
   );
 }
+
+// Future<void> _pickValidTillDate() async {
+//   final now = DateTime.now();
+//   final today = DateTime(now.year, now.month, now.day);
+//   final firstSelectableDate = today.add(const Duration(days: 1)); // kal se selectable
+
+//   final picked = await showDatePicker(
+//     context: context,
+//     initialDate: (_validTillDate != null && _validTillDate!.isAfter(firstSelectableDate))
+//         ? _validTillDate!
+//         : firstSelectableDate,
+//     firstDate: firstSelectableDate, // aaj ki date bhi disable, sirf future
+//     lastDate: DateTime(now.year + 5),
+//     builder: (context, child) {
+//       return Theme(
+//         data: Theme.of(context).copyWith(
+//           colorScheme: ColorScheme.light(
+//             primary: const Color(0xFF0857C0),
+//           ),
+//         ),
+//         child: child!,
+//       );
+//     },
+//   );
+
+//   if (picked == null) return; // user ne cancel kiya
+
+//   setState(() {
+//     _validTillDate = picked;
+//   });
+
+//   final salesprovider = context.watch<Salesprovider>();
+//   await salesprovider.changeDoctorValidity(
+//     doctorId: widget.doctorData['userid'],
+//     validTill: picked.toIso8601String(),
+//     context: context,
+//   );
+// }
 
 String get _formattedValidTill {
   if (_validTillDate == null) return 'Not set';
