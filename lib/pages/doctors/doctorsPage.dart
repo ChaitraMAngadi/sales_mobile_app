@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sales_mobile_app/pages/marketingPage.dart';
+import 'package:sales_mobile_app/pages/marketingPageGate.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
 import 'package:sales_mobile_app/routes/app_router.dart';
 import 'package:sales_mobile_app/services/constants.dart';
@@ -170,6 +172,15 @@ Future<void> _handleRefresh() async {
       
               
             return DoctorCard(
+              marketingonTap: () {
+                Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MarketingProfileGate(
+                                  id: item['userid'],
+                                )),
+                          );
+              },
               onView: ()=> showDialog(
                           context: context,
                           builder: (_) => ViewDoctorModel(
@@ -578,6 +589,7 @@ class DoctorCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onToggleActive;
   final VoidCallback onPriceTap;
+  final VoidCallback marketingonTap;
   
   final bool isactive;
   final int phone;
@@ -591,7 +603,7 @@ class DoctorCard extends StatelessWidget {
     required this.onView,
     required this.onEdit,
     required this.onToggleActive,
-   required this.isactive, required this.phone, required this.name, required this.id, required this.onPriceTap, required this.validtill, required this.createdat, required this.phone2,
+   required this.isactive, required this.phone, required this.name, required this.id, required this.onPriceTap, required this.validtill, required this.createdat, required this.phone2, required this.marketingonTap,
   });
  
   static const Color primaryRed = AppColors.primary;
@@ -732,12 +744,22 @@ String formatValidDate(String isoDate) {
                       const SizedBox(width: 10),
                        Expanded(
                          child: _RoundIconButton(
-                          icon: Icons.monetization_on_outlined,
+                          icon: FontAwesomeIcons.indianRupeeSign,
                           background: lightPink,
                           iconColor: primaryRed,
                           onTap: onPriceTap,
-                                               ),
+                        ),
+                                               
                        ),
+                       const SizedBox(width: 10),
+                       Expanded(
+                        child: _RoundIconButton(
+                          icon: Icons.campaign_outlined,
+                          background: lightPink,
+                          iconColor: primaryRed,
+                          onTap: marketingonTap,
+                        ),
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         flex: 2,

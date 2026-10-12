@@ -10,6 +10,7 @@ import 'package:sales_mobile_app/pages/analyticsPage.dart';
 import 'package:sales_mobile_app/pages/doctors/doctorsPage.dart';
 import 'package:sales_mobile_app/pages/hospitals/hospitalPage.dart';
 import 'package:sales_mobile_app/pages/labtechnician/labTechniciansPage.dart';
+import 'package:sales_mobile_app/pages/marketingPage.dart';
 import 'package:sales_mobile_app/pages/profilesPage.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
 import 'package:sales_mobile_app/routes/app_router.dart';
@@ -183,6 +184,24 @@ Widget build(BuildContext context) {
                         },
                       ),
                     ),
+                    // Card(
+                    //   child: ListTile(
+                    //     leading: const Icon(Icons.switch_account_rounded,
+                    //     color: AppColors.primaryDark,),
+                    //     title: const Text('Marketing',
+                    //     style: TextStyle(
+                    //       color: AppColors.primaryDark
+                    //     ),),
+                    //     onTap: () {
+                    //       Navigator.pop(context);
+                    //       Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //             builder: (context) => const MarketingProfilePage()),
+                    //       );
+                    //     },
+                    //   ),
+                    // ),
                     AppLockToggle(),
                     
                   ],
