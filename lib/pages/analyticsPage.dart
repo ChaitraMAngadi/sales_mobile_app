@@ -728,6 +728,7 @@ class _AnalyticsDetailModalState extends State<_AnalyticsDetailModal> {
       endDate: end,
       extraParams: _entityParams(),
     );
+    print(res);
     if (!mounted) return;
     setState(() {
       _loading = false;
@@ -911,6 +912,7 @@ class _AnalyticsDetailModalState extends State<_AnalyticsDetailModal> {
   // { doctor: "all" | {name, userid}, filter: {...}, paymentsCount: N,
   //   totals: { totalAmountRupee, totalNetRupee, totalGstRupee, totalAmountPaisa } }
   Widget _revenueLayout(Map<String, dynamic> map, Color accent) {
+
     final totalsRaw = map['totals'];
     final totals = totalsRaw is Map
         ? totalsRaw.map((k, v) => MapEntry(k.toString(), v))
@@ -920,6 +922,21 @@ class _AnalyticsDetailModalState extends State<_AnalyticsDetailModal> {
     final netRevenue = (totals['totalNetRupee'] as num?) ?? 0;
     final gst = (totals['totalGstRupee'] as num?) ?? 0;
     final paymentsCount = (map['paymentsCount'] as num?) ?? 0;
+
+    // Breakdown: bill payments vs advance payments
+final breakdownRaw = map['breakdown'];
+final hasBreakdown = breakdownRaw is Map;
+final breakdown = breakdownRaw is Map
+    ? breakdownRaw.map((k, v) => MapEntry(k.toString(), v))
+    : <String, dynamic>{};
+
+Map<String, dynamic> asMap(dynamic v) =>
+    v is Map ? v.map((k, x) => MapEntry(k.toString(), x)) : <String, dynamic>{};
+
+final billAmount = (asMap(breakdown['payments'])['amountRupee'] as num?) ?? 0;
+final advanceAmount =
+    (asMap(breakdown['advancePayments'])['amountRupee'] as num?) ?? 0;
+final advanceCount = (map['advancePaymentsCount'] as num?) ?? 0;
 
     // Who this data belongs to — "All Doctors"/"All Clinics" or a named one.
     String subjectLabel = _isRevenueByDoctor ? 'All Doctors' : 'All Clinics';
@@ -1048,6 +1065,27 @@ class _AnalyticsDetailModalState extends State<_AnalyticsDetailModal> {
             smallCard('Total GST', gst, 'GST collected', Icons.receipt_long),
           ],
         ),
+        if (hasBreakdown) ...[
+  const SizedBox(height: 14),
+  Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      smallCard(
+        'Bill Payments',
+        billAmount,
+        '$paymentsCount payment${paymentsCount == 1 ? '' : 's'}',
+        Icons.receipt_long_outlined,
+      ),
+      const SizedBox(width: 14),
+      smallCard(
+        'Advance Payments',
+        advanceAmount,
+        '$advanceCount advance${advanceCount == 1 ? '' : 's'}',
+        Icons.account_balance_wallet_outlined,
+      ),
+    ],
+  ),
+],
         paymentsCard(),
       ],
     );

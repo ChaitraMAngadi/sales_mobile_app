@@ -8,12 +8,14 @@ import 'package:sales_mobile_app/loginPage.dart';
 import 'package:sales_mobile_app/pages/admins/adminsPage.dart';
 import 'package:sales_mobile_app/pages/analyticsPage.dart';
 import 'package:sales_mobile_app/pages/doctors/doctorsPage.dart';
+import 'package:sales_mobile_app/pages/doctors/paymentListPage.dart';
 import 'package:sales_mobile_app/pages/hospitals/hospitalPage.dart';
 import 'package:sales_mobile_app/pages/labtechnician/labTechniciansPage.dart';
 import 'package:sales_mobile_app/pages/marketingPage.dart';
 import 'package:sales_mobile_app/pages/profilesPage.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
 import 'package:sales_mobile_app/routes/app_router.dart';
+import 'package:sales_mobile_app/services/auth.dart';
 import 'package:sales_mobile_app/services/constants.dart';
 import 'package:sales_mobile_app/services/secureStorage.dart';
 import 'package:sales_mobile_app/theme/app_colors.dart';
@@ -77,6 +79,38 @@ final SecureStorage secureStorage = SecureStorage();
   }
 }
 
+
+void _openAdvancePayments() {
+  Navigator.pop(context); // close drawer
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.cardBg,
+          iconTheme: IconThemeData(color: AppColors.primary),
+          centerTitle: true,
+          title: const Text('Advance Payments',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                  fontSize: 22)),
+        ),
+        body: AdvancedPaymentsListPageSuperadmin(
+          authGet: (url) => authGet(url), // your existing helper
+          baseUrl: Constants.baseUrl,
+          apiPrefix: 'api/v1/sales',
+          // Change these three to your real sales endpoints (see below)
+          doctorsEndpoint: 'getalldoctorsname',
+          paymentsEndpoint: 'getalladvancedpayments',
+          invoiceEndpoint: 'advancedpaymentbyorderid',
+          onUnauthenticated: () => debugPrint('UNAUTHENTICATED'),
+          onGoSuperadmin: () => debugPrint('success was false'),
+        ),
+      ),
+    ),
+  );
+}
 
 
 @override
@@ -184,6 +218,17 @@ Widget build(BuildContext context) {
                         },
                       ),
                     ),
+                    Card(
+  child: ListTile(
+    leading: const Icon(Icons.account_balance_wallet_rounded,
+        color: AppColors.primaryDark),
+    title: const Text(
+      'Advance Payments',
+      style: TextStyle(color: AppColors.primaryDark),
+    ),
+    onTap: _openAdvancePayments,
+  ),
+),
                     // Card(
                     //   child: ListTile(
                     //     leading: const Icon(Icons.switch_account_rounded,

@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sales_mobile_app/pages/doctors/advancedPaymentModel.dart';
 import 'package:sales_mobile_app/pages/marketingPage.dart';
 import 'package:sales_mobile_app/pages/marketingPageGate.dart';
 import 'package:sales_mobile_app/provider/salesProvider.dart';
@@ -28,6 +32,33 @@ class _DoctorsPageState extends State<DoctorsPage> {
     final SecureStorage secureStorage = SecureStorage();
       String _searchQuery = ''; 
 
+
+// Future<Map<String, dynamic>> apiFetch(
+//   String path, {
+//   String method = 'GET',
+//   Map<String, dynamic>? body,
+// }) async {
+//   // Constants mein jo base URL hai wo use karo (naam apne hisaab se badlo)
+//   final uri = Uri.parse('${Constants.baseUrl}$path');
+
+//   final headers = {
+//     'Content-Type': 'application/json',
+//     'Authorization': 'Bearer ${Constants.token}', // ya jaise aapke baaki calls mein jata hai
+//   };
+
+//   final res = method == 'POST'
+//       ? await http.post(uri,
+//           headers: headers, body: body != null ? jsonEncode(body) : null)
+//       : await http.get(uri, headers: headers);
+
+//   if (res.statusCode == 401) {
+//     // token expire: login par bhejo (jaise React mein navigate("/") tha)
+//     // context.router.replaceAll([const LoginRoute()]);
+//     return {'success': false, 'message': 'Unauthenticated'};
+//   }
+
+//   return jsonDecode(res.body) as Map<String, dynamic>;
+// }
 
 
 @override
@@ -181,6 +212,19 @@ Future<void> _handleRefresh() async {
                                 )),
                           );
               },
+              walletonTap: () {
+  showAdvancePaymentModal(
+    context,
+    doctorUserid: item['userid'].toString(),
+    doctorName: item['name'],
+    // apiFetch: apiFetch,
+    onSuccess: () {
+      setState(() {
+        fetchdoctors = context.read<Salesprovider>().getalldoctors(context);
+      });
+    },
+  );
+},
               onView: ()=> showDialog(
                           context: context,
                           builder: (_) => ViewDoctorModel(
@@ -590,6 +634,7 @@ class DoctorCard extends StatelessWidget {
   final VoidCallback onToggleActive;
   final VoidCallback onPriceTap;
   final VoidCallback marketingonTap;
+  final VoidCallback walletonTap;
   
   final bool isactive;
   final int phone;
@@ -603,7 +648,7 @@ class DoctorCard extends StatelessWidget {
     required this.onView,
     required this.onEdit,
     required this.onToggleActive,
-   required this.isactive, required this.phone, required this.name, required this.id, required this.onPriceTap, required this.validtill, required this.createdat, required this.phone2, required this.marketingonTap,
+   required this.isactive, required this.phone, required this.name, required this.id, required this.onPriceTap, required this.validtill, required this.createdat, required this.phone2, required this.marketingonTap, required this.walletonTap,
   });
  
   static const Color primaryRed = AppColors.primary;
@@ -692,7 +737,17 @@ String formatValidDate(String isoDate) {
                           ],
                         ),
                       ),
-                      _StatusBadge(isActive: isactive),
+                      Row(
+                        children: [
+                          _StatusBadge(isActive: isactive),
+                         IconButton(
+                          icon: Icon(Icons.edit_outlined),
+                         
+                          color: primaryRed,
+                          onPressed: onEdit,
+                        ),
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -733,15 +788,15 @@ String formatValidDate(String isoDate) {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(
-                        child: _RoundIconButton(
-                          icon: Icons.edit_outlined,
-                          background: lightPink,
-                          iconColor: primaryRed,
-                          onTap: onEdit,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
+                      // Expanded(
+                        // child: _RoundIconButton(
+                        //   icon: Icons.edit_outlined,
+                        //   background: lightPink,
+                        //   iconColor: primaryRed,
+                        //   onTap: onEdit,
+                        // ),
+                      // ),
+                      // const SizedBox(width: 10),
                        Expanded(
                          child: _RoundIconButton(
                           icon: FontAwesomeIcons.indianRupeeSign,
@@ -759,6 +814,15 @@ String formatValidDate(String isoDate) {
                           iconColor: primaryRed,
                           onTap: marketingonTap,
                         ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _RoundIconButton(
+                            icon: Icons.wallet,
+                            background: lightPink,
+                            iconColor: primaryRed,
+                            onTap: walletonTap,
+                          ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -1261,28 +1325,34 @@ _associatedHospitalsTile(),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(10),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor),
             ),
-            child: Icon(icon, color: iconColor),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style:
-                       TextStyle(fontSize: 12,fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w500),
-              ),
-            ],
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style:
+                         TextStyle(fontSize: 12,fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w500,
+                      overflow: TextOverflow.ellipsis),
+                ),
+              ],
+            ),
           )
         ],
       ),

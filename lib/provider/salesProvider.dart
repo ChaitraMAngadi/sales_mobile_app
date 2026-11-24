@@ -3411,11 +3411,126 @@ class Salesprovider extends ChangeNotifier {
     }
   }
 
+  
+
   Future<void> changelabtechnicianpassword(String newPassword,
       String confirmPassword, String id, BuildContext context) {
     return _changePassword('resetpasswordlabtechnician/$id', newPassword,
         confirmPassword, context);
   }
+
+  // ── Advance payment state ──
+bool isPurseLoading = false;
+double? purseAmount;
+
+Future<void> fetchDoctorPurse(String doctorUserid) async {
+  isPurseLoading = true;
+  notifyListeners();
+  try {
+    // TODO: use your real wallet/purse endpoint + auth helper
+    // final data = await authGet('/api/v1/sales/purse/$doctorUserid');
+    // if (data['success'] == true) {
+    //   purseAmount = double.tryParse(
+    //           data['data']?['purseAmount']?.toString() ?? '') ??
+    //       0;
+    // }
+
+     final res = await authPost('${Constants.baseUrl}/api/v1/sales/getpurseamount/$doctorUserid');
+     debugPrint('PURSE status: ${res?.statusCode}');
+debugPrint('PURSE body: ${res?.body}');
+    // final data = res?.data;
+    final data = jsonDecode(res!.body);
+    print(data);
+    if (data is Map && data['success'] == true) {
+      purseAmount =
+          double.tryParse(data['data']?['purseAmount']?.toString() ?? '') ?? 0;
+    }
+  } catch (e) {
+    debugPrint('Error fetching purse: $e');
+  } finally {
+    isPurseLoading = false;
+    notifyListeners();
+  }
+}
+
+/// Returns null on success, or an error message on failure.
+Future<String?> addAdvancePayment({
+  required String doctorUserid,
+  required String paymentMode,
+  required double totalAmount,
+  DateTime? paymentDate,
+  String transactionReference = '',
+  String utrNumber = '',
+  String bankName = '',
+  String chequeNumber = '',
+  String receivedBy = '',
+  String receiptNumber = '',
+  String paymentProof = '',
+}) async {
+  final body = <String, dynamic>{
+    'paymentMode': paymentMode,
+    'totalAmountReceived': totalAmount,
+    'transactionReference': transactionReference,
+    'utrNumber': utrNumber,
+    'bankName': bankName,
+    'chequeNumber': chequeNumber,
+    'receivedBy': receivedBy,
+    'receiptNumber': receiptNumber,
+    'paymentProof': paymentProof,
+  };
+  if (paymentDate != null) {
+    body['paymentDate'] = DateTime.utc(
+            paymentDate.year, paymentDate.month, paymentDate.day)
+        .toIso8601String();
+  }
+
+  // try {
+  //   final data = await authPost(
+  //     '/api/v1/sales/advancedpayment/$doctorUserid',
+  //     body: body,
+  //   );
+  //   if (data['success'] == true) {
+  //     await fetchDoctorPurse(doctorUserid); // refresh balance
+  //     return null;
+  //   }
+  //   final errs = data['errors'];
+  //   return (errs is List && errs.isNotEmpty)
+  //       ? errs.first.toString()
+  //       : (data['message']?.toString() ??
+  //           'Advance payment could not be added');
+  // } catch (e) {
+  //   debugPrint('Error adding advance payment: $e');
+  //   return 'Something went wrong. Please try again.';
+  // }
+  try {
+  final res = await authPost(
+    '${Constants.baseUrl}/api/v1/sales/advancedpayment/$doctorUserid',
+    // body: body,
+    body: jsonEncode(body),
+  );
+  if (res == null) return 'No response from server. Please try again.';
+
+  // final data = res.data;
+
+  final data = jsonDecode(res.body); // instead of res.data
+
+  print(data);
+  if (data is Map) {
+    if (data['success'] == true) {
+      await fetchDoctorPurse(doctorUserid);
+      return null;
+    }
+    final errs = data['errors'];
+    return (errs is List && errs.isNotEmpty)
+        ? errs.first.toString()
+        : (data['message']?.toString() ?? 'Advance payment could not be added');
+  }
+  return 'Unexpected response from server.';
+} catch (e) {
+  debugPrint('Error adding advance payment: $e');
+  return 'Something went wrong. Please try again.';
+}
+}
 
   // ═══════════════════════════ misc ═══════════════════════════
 
@@ -3425,6 +3540,8 @@ class Salesprovider extends ChangeNotifier {
     final String failed = (await secureStorage.readSecureData('token')) ?? '';
     await TokenManager.refresh(failedToken: failed);
   }
+
+
 
   /// Logout par purana data na dikhe.
   void reset() {
@@ -3438,6 +3555,8 @@ class Salesprovider extends ChangeNotifier {
     priceHistory = [];
     notifyListeners();
   }
+
+  
 
   void notify() {
     notifyListeners();
